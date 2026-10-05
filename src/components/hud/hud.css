@@ -77,6 +77,20 @@
 }
 .hud-gear svg { width: 0.42rem; height: 0.42rem; }
 
+.hud-login {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.85rem;
+  height: 0.55rem;
+  padding: 0 0.22rem;
+  border-radius: 0.14rem !important;
+  background: #2f8f4e !important;
+  color: #fff;
+  font-size: 0.24rem;
+  white-space: nowrap;
+}
+.hud-login:hover { filter: brightness(1.1); }
+
 /* --- Left: stats, menu, backpack ---------------------------------------- */
 .hud-stats {
   position: absolute;

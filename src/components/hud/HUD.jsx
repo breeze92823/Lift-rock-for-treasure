@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import './hud.css'
 import { useGameStore, openWindow } from '../../store/useGameStore.js'
 import { player, resetPlayer } from '../../systems/playerState.js'
-import { showMenu } from '../../systems/bloxity.js'
+import { authState, isAvailable, login, showMenu } from '../../systems/bloxity.js'
+import { useAuth } from '../../systems/bloxityHooks.js'
 import { plotFacing, plotSpawn, SPAWN, SPAWN_FACING } from '../../data/world.js'
 import InteractPrompt from './InteractPrompt.jsx'
 import ActionResult from './ActionResult.jsx'
@@ -74,6 +75,17 @@ function TravelButtons() {
   )
 }
 
+// Only shown for signed-out players when the Bloxity SDK actually loaded.
+function LoginButton() {
+  useAuth()
+  if (!authState.ready || authState.user || !isAvailable()) return null
+  return (
+    <button className="hud-login rbx" onPointerDown={stop} onClick={() => login()}>
+      Login with Bloxity
+    </button>
+  )
+}
+
 // Screen-space game UI laid out after the reference screenshots (1920x976).
 // 1rem = 100 px of that reference, scaled to the viewport (see hud.css), so
 // every value below reads straight off the screenshot.
@@ -95,6 +107,8 @@ export default function HUD() {
       <Hotbar />
 
       <TravelButtons />
+
+      <LoginButton />
 
       <button className="hud-gear" onPointerDown={stop} onClick={() => showMenu()} aria-label="Settings">
         <GearIcon />

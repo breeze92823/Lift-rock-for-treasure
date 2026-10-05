@@ -83,7 +83,7 @@ export const ITEM_CATALOG = [
   ['Anchor', 'Uncommon', '⚓'],
   ['Binoculars', 'Uncommon', '🔭'],
   ...EXTRA_ITEMS.map(([name, rarity, glyph]) => [name, rarity, glyph]),
-]
+].sort((a, b) => RARITIES.indexOf(a[1]) - RARITIES.indexOf(b[1])) // stable: keeps insertion order within a tier
 
 // Luck % per rarity tier: [min, max]. Each item's value below is picked at random within its tier's range.
 export const LUCK_RANGES = {

@@ -211,13 +211,18 @@ export const plotSlotsAt = (i) =>
 // treasure pedestals, orange pillars, corner posts and the back wall. Taller than
 // the step height so the player can't climb onto them.
 const HALL_H = PLOT.h + 1.6
-const hallCx = home.side * (PLOT.inner + PLOT.width / 2)
-const HOME_HALL_BLOCKS = [
-  ...HOME_SLOTS.map((p) => ({ x: p.x, z: p.z, w: 2.6, d: 2.6, h: HALL_H })),
-  ...[-1, 1].map((s) => ({ x: hallCx + home.side * (PLOT.width / 2 - 1.2), z: home.z + s * 5.5, w: 1, d: 1, h: HALL_H })),
-  ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => ({ x: hallCx + sx * (PLOT.width / 2 - 0.45), z: home.z + sz * (PLOT.depth / 2 - 0.45), w: 0.9, d: 0.9, h: HALL_H }))),
-  { x: hallCx + home.side * (PLOT.width / 2 - 0.15), z: home.z, w: 0.3, d: PLOT.depth, h: HALL_H },
-]
+// Per plot index, because the server assigns the player's plot (store.homePlot).
+// The long sides are solid walls; the entrance on the path side stays open.
+export const hallBlocksFor = (i) => {
+  const pl = PLOTS[i]
+  const cx = pl.side * (PLOT.inner + PLOT.width / 2)
+  return [
+    ...plotSlotsAt(i).map((p) => ({ x: p.x, z: p.z, w: 2.6, d: 2.6, h: HALL_H })),
+    ...[-1, 1].map((s) => ({ x: cx + pl.side * (PLOT.width / 2 - 1.2), z: pl.z + s * 5.5, w: 1, d: 1, h: HALL_H })),
+    ...[-1, 1].map((s) => ({ x: cx, z: pl.z + s * (PLOT.depth / 2 - 0.45), w: PLOT.width, d: 0.9, h: HALL_H })),
+    { x: cx + pl.side * (PLOT.width / 2 - 0.15), z: pl.z, w: 0.3, d: PLOT.depth, h: HALL_H },
+  ]
+}
 
 export const WORLD_BOUNDS = { minX: ARENA.minX, maxX: ARENA.maxX, minZ: LIFT_END, maxZ: ARENA.maxZ }
 
@@ -286,9 +291,10 @@ export const BLOCKS = [
     w: 1.4, d: 1.4, h: 1.2,
   }))),
   ...PLOTS.map((p) => ({ x: p.side * (PLOT.inner + PLOT.width / 2), z: p.z, w: PLOT.width, d: PLOT.depth, h: PLOT.h })),
-  ...HOME_HALL_BLOCKS,
 ]
 
-export const COLLIDERS = BLOCKS.map((b) => ({
+const toCollider = (b) => ({
   x0: b.x - b.w / 2, x1: b.x + b.w / 2, z0: b.z - b.d / 2, z1: b.z + b.d / 2, top: GROUND_Y + b.h, gate: b.gate, // gate: luck of a Lift gate, which stops colliding once lifted
-}))
+})
+export const COLLIDERS = BLOCKS.map(toCollider)
+export const HALL_COLLIDERS = PLOTS.map((_, i) => hallBlocksFor(i).map(toCollider)) // solid only for the player's own plot
