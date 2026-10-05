@@ -103,11 +103,14 @@ export function stepLift(dt) {
   player.position.z += (zn.gate.zS + STAND_GAP - player.position.z) * Math.min(1, STAND_RATE * dt)
   player.lifting = g.hp / g.max
 
-  if (g.hp >= g.max * THROW_AT) {
+  // Strength already meets the gate's requirement: throw it right away.
+  const strongEnough = useGameStore.getState().strength >= g.max
+  if (strongEnough || g.hp >= g.max * THROW_AT) {
     // Past THROW_AT: keep lifting (bar keeps filling) for FULL_HOLD_TIME, then throw.
     if (!g.fullT) playThrowRock() // sound leads the throw by FULL_HOLD_TIME
     g.fullT = (g.fullT || 0) + dt
-    if (g.fullT >= FULL_HOLD_TIME) {
+    if (strongEnough || g.fullT >= FULL_HOLD_TIME) {
+      g.hp = g.max
       g.phase = 'thrown'
       g.t = 0
       clearedGates.add(zn.luck)

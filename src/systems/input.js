@@ -86,7 +86,7 @@ function recomputeMove() {
 // Player control is off while a modal window (Sell) is open.
 const locked = () => {
   const s = useGameStore.getState()
-  return s.sellOpen || s.rebirthOpen || s.indexOpen
+  return s.sellOpen || s.rebirthOpen || s.indexOpen || s.upgradesOpen || s.armsOpen || s.auraOpen
 }
 
 function onKeyDown(e) {
@@ -158,7 +158,7 @@ export function install() {
   installed = true
   // Opening a modal drops any keys still held so the player stops dead.
   unsubLock = useGameStore.subscribe((st, prev) => {
-    if ((st.sellOpen && !prev.sellOpen) || (st.rebirthOpen && !prev.rebirthOpen) || (st.indexOpen && !prev.indexOpen)) onBlur()
+    if ((st.sellOpen && !prev.sellOpen) || (st.rebirthOpen && !prev.rebirthOpen) || (st.indexOpen && !prev.indexOpen) || (st.upgradesOpen && !prev.upgradesOpen) || (st.armsOpen && !prev.armsOpen) || (st.auraOpen && !prev.auraOpen)) onBlur()
   })
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)

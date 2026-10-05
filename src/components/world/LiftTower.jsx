@@ -67,7 +67,11 @@ const BAR_W = 7
 const BAR_H = 0.7
 const BAR_Y = PLINTH_H + 0.9
 
-const kfmt = (n) => (n >= 1000 ? `${+(n / 1000).toFixed(1)}K` : String(Math.floor(n)))
+const KFMT_UNITS = [[1e15, 'Qa'], [1e12, 'T'], [1e9, 'B'], [1e6, 'M'], [1e3, 'K']]
+const kfmt = (n) => {
+  const u = KFMT_UNITS.find(([v]) => n >= v)
+  return u ? `${+(n / u[0]).toFixed(1)}${u[1]}` : String(Math.floor(n))
+}
 
 // Health bar painted on the gate's south face; fills as the player lifts.
 function HealthBar({ b, z }) {
@@ -182,14 +186,14 @@ function Barrier({ b, name }) {
 }
 
 // The zone's loot stays hidden under its gate and appears once the gate is lifted.
-function LootReveal({ luck }) {
+function LootReveal({ zone }) {
   const ref = useRef()
   useFrame(() => {
-    if (ref.current) ref.current.visible = clearedGates.has(luck)
+    if (ref.current) ref.current.visible = clearedGates.has(zone.luck)
   })
   return (
-    <group ref={ref} name={`Loot x${luck}`} visible={false}>
-      <LootItems />
+    <group ref={ref} name={`Loot x${zone.luck}`} visible={false}>
+      <LootItems zone={zone} />
     </group>
   )
 }
@@ -240,7 +244,9 @@ export default function LiftTower() {
       {[-1, 1].map((s) => (
         <Block key={s} name={`Gutter ${s < 0 ? 'West' : 'East'}`} x={LIFT.x + s * (half - DRAIN.width / 2)} y={-2} z={(LIFT.zStart + LIFT_END) / 2} w={DRAIN.width} h={2 - DRAIN.depth} d={len} mat={MAT.glow} shadow={false} />
       ))}
-      <LootReveal luck={LIFT_ZONES[0].luck} />
+      {LIFT_ZONES.map((zn) => (
+        <LootReveal key={zn.luck} zone={zn} />
+      ))}
       {SHOW_RARITY_BOARD && <TimerBoard z={BOARD_Z} width={LIFT.width} bottom={BOARD_BOTTOM} />}
     </group>
   )

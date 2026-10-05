@@ -33,6 +33,7 @@
 }
 .sell-card.is-common { background: linear-gradient(rgba(150, 150, 150, 0.35), rgba(60, 60, 60, 0.35)); }
 .sell-card.is-uncommon { background: linear-gradient(rgba(60, 200, 90, 0.4), rgba(20, 90, 40, 0.35)); }
+.sell-card.is-rare { background: linear-gradient(rgba(50, 150, 255, 0.4), rgba(20, 60, 140, 0.35)); }
 .sell-card .n { align-self: flex-start; font-size: 0.26rem; }
 .sell-card .lvl { align-self: flex-start; font-size: 0.2rem; font-style: italic; }
 .sell-card .ico { flex: 1; display: grid; place-items: center; font-size: 0.95rem; }
@@ -50,6 +51,7 @@
 .hud .sell-side button.f-all { background: #6b4a44; font-size: 0.45rem; height: 0.75rem; }
 .hud .sell-side button.f-common { background: #8a8a8e; margin: 0 0.05rem; height: 0.55rem; font-size: 0.34rem; border-color: #2a2a2c; }
 .hud .sell-side button.f-uncommon { background: #3bd470; margin: 0 0.05rem; height: 0.55rem; font-size: 0.34rem; border-color: #0d3a1a; }
+.hud .sell-side button.f-rare { background: #2f9bff; margin: 0 0.05rem; height: 0.55rem; font-size: 0.34rem; border-color: #0b2f5a; }
 .hud .sell-side button.is-on { opacity: 1; outline: 0.03rem solid #fff; }
 .hud .sell-side.is-right button { height: 0.75rem; font-size: 0.45rem; }
 

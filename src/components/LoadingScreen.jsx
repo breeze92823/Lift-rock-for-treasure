@@ -26,7 +26,11 @@ export default function LoadingScreen({ sceneReady }) {
 
   return (
     <div className={`loading${ready ? ' is-done' : ''}`} style={{ transitionDuration: `${FADE_MS}ms` }}>
+      <div className="loading-rock" aria-hidden>
+        <span className="gem" /><span className="glint" /><span className="stone" />
+      </div>
       <h1>LIFT ROCK FOR TREASURE</h1>
+      <div className="loading-track"><div className="loading-fill" /></div>
       <p>{sceneReady ? (authReady ? 'Getting ready…' : 'Signing in…') : 'Building the world…'}</p>
     </div>
   )

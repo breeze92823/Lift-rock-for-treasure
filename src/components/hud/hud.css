@@ -21,7 +21,7 @@
   cursor: pointer;
 }
 .hud button:active { transform: scale(0.95); }
-.hud svg { display: block; overflow: visible; }
+.hud svg, .hud img { display: block; overflow: visible; }
 
 /* Roblox-style outlined text: thick dark stroke painted under the fill. */
 .hud .rbx,
@@ -122,7 +122,7 @@
   display: flex;
   justify-content: center;
 }
-.hud-menu-btn svg { width: 1.1rem; height: 1.1rem; filter: drop-shadow(0 0.04rem 0 rgba(0, 0, 0, 0.3)); }
+.hud-menu-btn svg, .hud-menu-btn img { width: 1.1rem; height: 1.1rem; filter: drop-shadow(0 0.04rem 0 rgba(0, 0, 0, 0.3)); }
 .hud-menu-label {
   position: absolute;
   bottom: -0.04rem;

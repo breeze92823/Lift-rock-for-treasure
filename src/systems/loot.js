@@ -1,7 +1,7 @@
 import { LOOT } from '../data/loot.js'
 import { LIFT_ZONES } from '../data/world.js'
 import { clearedGates, hubResetListeners } from './liftGate.js'
-import { useGameStore } from '../store/useGameStore.js'
+import { useGameStore, openWindow } from '../store/useGameStore.js'
 import { addZone, zones } from './interact.js'
 import { showActionResult } from './actionResult.js'
 import { rebirthMultiplier } from '../data/levels.js'
@@ -83,5 +83,5 @@ const sell = zones.find((z) => z.id === 'stall:sell')
 if (sell) {
   sell.prompt = 'Open Sell'
   sell.holdMs = 500
-  sell.onConfirm = () => useGameStore.setState({ sellOpen: true })
+  sell.onConfirm = () => openWindow('sell')
 }

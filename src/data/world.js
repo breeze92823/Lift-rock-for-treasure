@@ -41,10 +41,10 @@ export const COLORS = {
 // `facing` is radians about +Y (0 = facing +Z).
 const Q = Math.PI / 4
 export const STALLS = [
-  { id: 'aura', label: 'Aura', x: -12, z: -55, facing: Q, color: '#b234e8', dark: '#7a17b0', counter: '#8a3b1e', npc: null },
-  { id: 'sell', label: 'Sell', x: 12, z: -55, facing: -Q, color: '#4ed82a', dark: '#2a9a12', counter: '#a5502a', npc: { shirt: '#111111', pants: '#2d2d2d', skin: '#f6d23a', shades: true } },
-  { id: 'upgrades', label: 'Upgrades', x: -12, z: -35, facing: 3 * Q, color: '#35b6ff', dark: '#1679d9', counter: '#8a3b1e', npc: null },
-  { id: 'arms', label: 'Arms', x: 12, z: -35, facing: -3 * Q, color: '#ff9a1a', dark: '#e0640a', counter: '#d4511a', npc: { shirt: '#17181c', pants: '#17181c', skin: '#f0f0f0' } },
+  { id: 'aura', label: 'Aura', x: 12, z: -35, facing: -3 * Q, color: '#b234e8', dark: '#7a17b0', counter: '#8a3b1e', npc: { name: 'Mystic', shirt: '#2a1247', pants: '#17181c', skin: '#f6d23a', shades: true } },
+  { id: 'sell', label: 'Sell', x: 12, z: -55, facing: -Q, color: '#4ed82a', dark: '#2a9a12', counter: '#a5502a', npc: { name: 'Cashy', shirt: '#111111', pants: '#2d2d2d', skin: '#f6d23a', shades: true } },
+  { id: 'upgrades', label: 'Upgrades', x: -12, z: -35, facing: 3 * Q, color: '#35b6ff', dark: '#1679d9', counter: '#8a3b1e', npc: { name: 'Tinker', shirt: '#12324f', pants: '#2d2d2d', skin: '#f6d23a', shades: true } },
+  { id: 'arms', label: 'Arms', x: -12, z: -55, facing: Q, color: '#ff9a1a', dark: '#e0640a', counter: '#d4511a', npc: { name: 'Brawn', shirt: '#17181c', pants: '#17181c', skin: '#f6d23a', shades: true } },
 ]
 
 // Drainage channels sunk along both floor edges. Shallower than the player's
@@ -64,9 +64,25 @@ export const LIFT = {
   barrierH: 5, // plinth + rock steps; matches the wall height
   zones: [
     { luck: 1, req: '0', floor: '#3a3b40' },
-    { luck: 3, req: '1.5K', floor: '#2f6fc0' },
-    { luck: 4, req: '3K', floor: '#6a3fb5' },
-    { luck: 5, req: '5K', floor: '#c026c8' },
+    { luck: 2, req: '1.5K', floor: '#2f6fc0' },
+    { luck: 5, req: '3K', floor: '#6a3fb5' },
+    { luck: 10, req: '5K', floor: '#c026c8' },
+    { luck: 20, req: '10K', floor: '#2f8f4a' },
+    { luck: 30, req: '25K', floor: '#d98a1c' },
+    { luck: 50, req: '75K', floor: '#c4272f' },
+    { luck: 75, req: '200K', floor: '#1fb5b0' },
+    { luck: 100, req: '500K', floor: '#8a5a2b' },
+    { luck: 150, req: '1M', floor: '#e0e04a' },
+    { luck: 200, req: '2.5M', floor: '#3b3fd1' },
+    { luck: 300, req: '5M', floor: '#d1427a' },
+    { luck: 500, req: '10M', floor: '#2fc27a' },
+    { luck: 750, req: '25M', floor: '#7a2fd1' },
+    { luck: 1000, req: '50M', floor: '#e8641c' },
+    { luck: 1500, req: '100M', floor: '#17a0e0' },
+    { luck: 2000, req: '250M', floor: '#b8123c' },
+    { luck: 3000, req: '500M', floor: '#4a4f66' },
+    { luck: 5000, req: '1B', floor: '#e6c14a' },
+    { luck: 10000, req: '2.5B', floor: '#f2f4ff' },
   ],
 }
 const ZONE_LEN = LIFT.entryLen + LIFT.lootLen

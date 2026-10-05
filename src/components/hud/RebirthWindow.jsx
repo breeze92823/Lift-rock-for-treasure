@@ -41,19 +41,6 @@ export default function RebirthWindow() {
           <div className="rb-level-fill" style={{ width: `${Math.min(1, level / need) * 100}%` }} />
           <span className="rbx">Level {Math.min(level, need)}/{need}</span>
         </div>
-        <div className="rb-tiers">
-          {Array.from({ length: Math.max(8, rebirths + 3) }, (_, i) => {
-            const state = i < rebirths ? 'is-done' : i === rebirths ? 'is-next' : 'is-locked'
-            return (
-              <div key={i} className={`rb-tier ${state}`}>
-                <span className="rbx t">Rebirth {i + 1}</span>
-                <span className="rbx m">{fmt(rebirthMultiplier(i + 1))} Power</span>
-                <span className="rbx l">{state === 'is-done' ? 'Unlocked' : `Lv ${levelForRebirth(i)}`}</span>
-                {state === 'is-locked' && <span className="lock">🔒</span>}
-              </div>
-            )
-          })}
-        </div>
         <button className={`rb-go rbx ${ready ? '' : 'is-locked'}`} disabled={!ready} onClick={doRebirth}>
           {ready ? 'Rebirth' : `Reach Level ${need}`}
         </button>

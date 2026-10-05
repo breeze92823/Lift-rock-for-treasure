@@ -53,16 +53,7 @@ export function UpgradeIcon(props) {
 }
 
 export function RebirthIcon(props) {
-  return (
-    <svg viewBox="0 0 100 100" {...props}>
-      <g transform="rotate(-20 50 50)">
-        <circle cx="50" cy="52" r="40" fill="#fff" stroke={OUT} strokeWidth="5" />
-        <path d="M10 52 A40 40 0 0 1 90 52 Z" fill="#ef3340" stroke={OUT} strokeWidth="5" strokeLinejoin="round" />
-        <path d="M22 36 A30 30 0 0 1 46 20" fill="none" stroke="#ff9aa0" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="50" cy="52" r="12" fill="#fff" stroke={OUT} strokeWidth="5" />
-      </g>
-    </svg>
-  )
+  return <img src={`${import.meta.env.BASE_URL}ui/rebirth.png`} alt="" draggable={false} {...props} />
 }
 
 export function CashIcon(props) {
@@ -137,6 +128,17 @@ export function GearIcon(props) {
       {teeth}
       <circle cx="50" cy="50" r="30" fill="#cfd6e0" stroke={OUT} strokeWidth="4" />
       <circle cx="50" cy="50" r="12" fill="#2a3a5a" stroke={OUT} strokeWidth="3" />
+    </svg>
+  )
+}
+
+export function SpeedIcon(props) {
+  return (
+    <svg viewBox="0 0 100 100" {...props}>
+      <path d="M8 40 C14 14 40 8 52 22 C42 22 30 30 24 48 Z" fill="#fff" stroke={OUT} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M14 56 C20 36 44 30 60 40 C48 40 36 50 30 66 Z" fill="#f2f6ff" stroke={OUT} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M26 64 C34 56 56 56 80 62 C92 66 94 80 84 86 L34 88 C26 84 22 72 26 64 Z" fill="#fff" stroke={OUT} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M44 62 C56 60 72 64 82 70 L84 82 L40 84 Z" fill="#2f9bff" stroke={OUT} strokeWidth="4" strokeLinejoin="round" />
     </svg>
   )
 }

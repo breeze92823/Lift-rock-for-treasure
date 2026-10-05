@@ -50,6 +50,7 @@ export default function SellWindow() {
           <div className="cap rbx">Rarities</div>
           {fbtn('Common', 'f-common')}
           {fbtn('Uncommon', 'f-uncommon')}
+          {fbtn('Rare', 'f-rare')}
         </div>
         <div className="sell-side is-right">
           <button className={`rbx ${asc ? 'is-on' : ''}`} onClick={() => setAsc(true)}>↑ASC</button>

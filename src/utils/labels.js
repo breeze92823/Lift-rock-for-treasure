@@ -156,6 +156,7 @@ export function billboardTexture(lines) {
 export const RARITY_PILL = {
   Secret: { pill: '#2b2c35', pillStroke: '#ffffff', fill: '#ffffff' },
   Celestial: { pill: 'rainbow', pillStroke: '#3a0d5a', fill: '#ffffff' },
+  Divine: { pill: '#ffd84a', pillStroke: '#6a4a00', fill: '#ffffff' },
   Exclusive: { pill: '#ff2b2b', pillStroke: '#5a0000', fill: '#ffffff' },
 }
 

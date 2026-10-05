@@ -30,19 +30,41 @@ export function Label({ lines, position, height = 1 }) {
   )
 }
 
-// Blocky R6-style shopkeeper: legs, torso, arms, head (+ optional shades).
-export function Npc({ shirt, pants, skin, shades, position, rot = 0 }) {
+// Blocky R6-style shopkeeper with an emoji head: round face, shades, grin,
+// gold chain, one arm waving, and a name tag.
+export function Npc({ shirt, pants, skin, shades, name, position, rot = 0, rootRef, armRef }) {
+  const skinM = plastic(skin)
   return (
-    <group position={position} rotation-y={rot}>
+    <group ref={rootRef} position={position} rotation-y={rot}>
       <Block x={-0.25} w={0.48} h={0.95} d={0.48} mat={plastic(pants)} />
       <Block x={0.25} w={0.48} h={0.95} d={0.48} mat={plastic(pants)} />
       <Block y={0.95} w={1} h={0.95} d={0.5} mat={plastic(shirt)} />
-      <Block x={-0.75} y={0.95} w={0.48} h={0.95} d={0.48} mat={plastic(skin)} />
-      <Block x={0.75} y={0.95} w={0.48} h={0.95} d={0.48} mat={plastic(skin)} />
-      <mesh position={[0, 2.2, 0]} material={plastic(skin)} castShadow>
-        <cylinderGeometry args={[0.32, 0.32, 0.55, 20]} />
+      <Block x={-0.75} y={0.95} w={0.48} h={0.95} d={0.48} mat={skinM} />
+      {/* right arm: hangs down, swings up to wave (driven by Stalls.jsx when armRef is set) */}
+      <group ref={armRef} position={[0.75, 1.85, 0]} rotation-z={armRef ? -0.05 : -2.5}>
+        <Block y={-0.95} w={0.48} h={0.95} d={0.48} mat={skinM} />
+      </group>
+      {/* gold chain */}
+      <mesh position={[0, 1.78, 0.2]} rotation-x={0.35} material={plastic('#f2c230')}>
+        <torusGeometry args={[0.3, 0.035, 8, 24]} />
       </mesh>
-      {shades && <Block y={2.22} z={0.3} w={0.66} h={0.14} d={0.06} mat={MAT.black} />}
+      {/* emoji head */}
+      <mesh position={[0, 2.4, 0]} material={skinM} castShadow>
+        <sphereGeometry args={[0.52, 28, 20]} />
+      </mesh>
+      {shades && (
+        <group position={[0, 2.46, 0.44]}>
+          <Block x={-0.19} y={-0.09} z={0.04} w={0.3} h={0.18} d={0.08} mat={MAT.black} />
+          <Block x={0.19} y={-0.09} z={0.04} w={0.3} h={0.18} d={0.08} mat={MAT.black} />
+          <Block y={-0.03} z={0.03} w={0.14} h={0.04} d={0.06} mat={MAT.black} />
+        </group>
+      )}
+      {/* big grin: dark mouth with a teeth strip */}
+      <group position={[0, 2.12, 0.46]}>
+        <Block x={0} y={0} z={0} w={0.5} h={0.14} d={0.06} mat={MAT.black} />
+        <Block x={0} y={0.02} z={0.03} w={0.44} h={0.07} d={0.04} mat={MAT.white} />
+      </group>
+      {name && <Label position={[0, 3.3, 0]} height={0.4} lines={[{ text: name, size: 70, fill: '#ffffff', stroke: '#000000', line: 10 }]} />}
     </group>
   )
 }

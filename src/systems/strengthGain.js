@@ -6,9 +6,11 @@ import { STRENGTH_PER_CLICK, TRAINING_TICK } from '../data/actionPopups.js'
 import { rebirthMultiplier, strengthForNextLevel } from '../data/levels.js'
 import { spawnActionPopup } from './actionPopups.js'
 import { player } from './playerState.js'
+import { armMultiplier } from './arms.js'
+import { auraMultiplier } from './auras.js'
 
 export function gainStrength(base) {
-  const amount = Math.floor(base * rebirthMultiplier(useGameStore.getState().rebirths))
+  const amount = Math.floor(base * rebirthMultiplier(useGameStore.getState().rebirths) * armMultiplier() * auraMultiplier())
   useGameStore.setState((st) => {
     let { level, xp, xpNeeded } = st
     xp += amount

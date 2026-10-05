@@ -36,6 +36,14 @@
 .idx-cell .r { position: absolute; bottom: 0.02rem; font-size: 0.22rem; }
 .idx-cell .r.is-common { color: #bdbdbd; }
 .idx-cell .r.is-uncommon { color: #4fe08a; }
+.idx-cell .r.is-rare { color: #4fb0ff; }
+.idx-cell .r.is-rare { color: #4aa8ff; }
+.idx-cell .r.is-epic { color: #b66bff; }
+.idx-cell .r.is-legendary { color: #ffb21a; }
+.idx-cell .r.is-mythic { color: #ff4d6d; }
+.idx-cell .r.is-secret { color: #1ee6d4; }
+.idx-cell .r.is-celestial { color: #ff9aef; }
+.idx-cell .r.is-divine { color: #fff3a8; text-shadow: 0 0 0.08rem #ffd84a; }
 .idx-reward { text-align: center; font-size: 0.26rem; margin-top: 0.05rem; }
 .idx-bar {
   position: relative; height: 0.4rem; background: #15191f; border: 0.03rem solid #05121f; display: grid; place-items: center;

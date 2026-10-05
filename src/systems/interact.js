@@ -10,7 +10,7 @@ import { isInteractKeyDown } from './input.js'
 import { step as stepHold } from './interactHold.js'
 import { playConfirmPop } from './sfx.js'
 import { showActionResult } from './actionResult.js'
-import { useGameStore } from '../store/useGameStore.js'
+import { useGameStore, openWindow } from '../store/useGameStore.js'
 
 // { id, x, z, range, prompt, holdMs?, enabled?(), onConfirm() }; a zone whose
 // enabled() returns false is ignored.
@@ -29,6 +29,30 @@ export const zones = STALLS.map((s) =>
     onConfirm: () => showActionResult(`${s.label} coming soon`, false),
   }),
 )
+
+// The Arms stall opens the Arms window (same hold-E flow as Sell in systems/loot.js).
+const armsStall = zones.find((z) => z.id === 'stall:arms')
+if (armsStall) {
+  armsStall.prompt = 'Open Arms'
+  armsStall.holdMs = 500
+  armsStall.onConfirm = () => openWindow('arms')
+}
+
+// The Upgrades stall opens the Upgrades window.
+const upgradesStall = zones.find((z) => z.id === 'stall:upgrades')
+if (upgradesStall) {
+  upgradesStall.prompt = 'Open Upgrades'
+  upgradesStall.holdMs = 500
+  upgradesStall.onConfirm = () => openWindow('upgrades')
+}
+
+// The Aura stall opens the Aura window.
+const auraStall = zones.find((z) => z.id === 'stall:aura')
+if (auraStall) {
+  auraStall.prompt = 'Open Aura'
+  auraStall.holdMs = 500
+  auraStall.onConfirm = () => openWindow('aura')
+}
 
 // The prompt currently on screen: null, or { id, prompt }.
 export const interactState = { near: null }
@@ -60,7 +84,7 @@ function nearestZone() {
 
 export function stepInteract() {
   // No prompt (and no re-firing) while the Sell window is open.
-  const zone = (useGameStore.getState().sellOpen || useGameStore.getState().rebirthOpen || useGameStore.getState().indexOpen) ? null : nearestZone()
+  const zone = (useGameStore.getState().sellOpen || useGameStore.getState().rebirthOpen || useGameStore.getState().indexOpen || useGameStore.getState().upgradesOpen || useGameStore.getState().armsOpen || useGameStore.getState().auraOpen) ? null : nearestZone()
   interactState.near = zone ? { id: zone.id, prompt: zone.prompt } : null
 
   if (stepHold(zone ? zone.id : null, isInteractKeyDown(), zone?.holdMs)) {

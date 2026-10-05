@@ -21,7 +21,7 @@
 }
 .rb-row { display: flex; align-items: center; gap: 0.4rem; }
 .rb-chip { display: flex; align-items: center; width: 2.4rem; height: 0.72rem; border-radius: 0.06rem; }
-.rb-chip svg { width: 0.9rem; height: 0.9rem; margin: 0 -0.15rem 0 -0.2rem; z-index: 1; }
+.rb-chip svg, .rb-chip img { width: 0.9rem; height: 0.9rem; margin: 0 -0.15rem 0 -0.2rem; z-index: 1; }
 .rb-chip b { flex: 1; text-align: center; font-size: 0.55rem; }
 .rb-chip.is-cash { background: linear-gradient(#5ff03a, #2a9a10); }
 .rb-chip.is-arm { background: linear-gradient(#ffa13a, #d4600a); }
@@ -36,10 +36,3 @@
 }
 .hud .rb-go.is-locked { background: #555; border-color: #222; opacity: 0.7; cursor: not-allowed; }
 
-.rb-tiers { width: 6.6rem; max-height: 2.2rem; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.1rem; margin-top: 0.1rem; }
-.rb-tier { position: relative; display: flex; flex-direction: column; align-items: center; padding: 0.08rem 0; border-radius: 0.06rem; border: 0.03rem solid #1a1a1c; font-size: 0.26rem; background: #3a3a40; }
-.rb-tier .m { font-size: 0.3rem; color: #ffd23a; }
-.rb-tier.is-done { background: linear-gradient(#3fd41a, #1f7a0a); }
-.rb-tier.is-next { background: linear-gradient(#ff3a5c, #b0102c); outline: 0.03rem solid #fff; }
-.rb-tier.is-locked { opacity: 0.6; }
-.rb-tier .lock { position: absolute; right: 0.04rem; top: 0.02rem; font-size: 0.24rem; }

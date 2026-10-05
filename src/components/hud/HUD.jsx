@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './hud.css'
-import { useGameStore } from '../../store/useGameStore.js'
+import { useGameStore, openWindow } from '../../store/useGameStore.js'
 import { player, resetPlayer } from '../../systems/playerState.js'
 import { showMenu } from '../../systems/bloxity.js'
 import { HOME_FACING, HOME_SPAWN, SPAWN, SPAWN_FACING } from '../../data/world.js'
@@ -10,9 +10,12 @@ import ActionPopups from './ActionPopups.jsx'
 import SellWindow from './SellWindow.jsx'
 import RebirthWindow from './RebirthWindow.jsx'
 import IndexWindow from './IndexWindow.jsx'
+import UpgradesWindow from './UpgradesWindow.jsx'
+import ArmsWindow from './ArmsWindow.jsx'
+import AuraWindow from './AuraWindow.jsx'
 import { levelForRebirth } from '../../data/levels.js'
 import Hotbar from './Hotbar.jsx'
-import { ArmIcon, BackpackIcon, BookIcon, CashIcon, FaceIcon, GearIcon, GiftIcon, RebirthIcon, RobuxIcon, UpgradeIcon } from './icons.jsx'
+import { ArmIcon, BackpackIcon, BookIcon, CashIcon, FaceIcon, GearIcon, RebirthIcon, UpgradeIcon } from './icons.jsx'
 
 const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi']
 function shortNumber(n) {
@@ -39,24 +42,12 @@ function MenuButton({ label, children, badge, onClick }) {
   )
 }
 
-function StrengthPack({ amount, price }) {
-  return (
-    <button className="hud-pack" onPointerDown={stop}>
-      <span className="hud-pack-price rbx">
-        <RobuxIcon className="hud-robux" />
-        {price}
-      </span>
-      <ArmIcon className="hud-pack-icon" />
-      <span className="hud-pack-amount rbx">+{amount}</span>
-    </button>
-  )
-}
-
 // Spawn / Home are disabled while the player is lifting a gate or training.
 // `player` is mutated in place (no subscription), so poll it per frame and
 // only re-render when the busy flag flips.
 function TravelButtons() {
   const [busy, setBusy] = useState(false)
+  const windowOpen = useGameStore((s) => s.sellOpen || s.rebirthOpen || s.indexOpen || s.upgradesOpen || s.armsOpen || s.auraOpen)
   useEffect(() => {
     let raf
     const tick = () => {
@@ -70,7 +61,7 @@ function TravelButtons() {
     if (player.lifting == null && player.training == null) resetPlayer(spawn, facing)
   }
   return (
-    <div className="hud-travel">
+    <div className="hud-travel" style={windowOpen ? { display: 'none' } : undefined}>
       <button className="hud-travel-btn is-spawn rbx" disabled={busy} onPointerDown={stop} onClick={go(SPAWN, SPAWN_FACING)}>
         Spawn
       </button>
@@ -96,6 +87,9 @@ export default function HUD() {
       <SellWindow />
       <RebirthWindow />
       <IndexWindow />
+      <UpgradesWindow />
+      <ArmsWindow />
+      <AuraWindow />
       <Hotbar />
 
       <TravelButtons />
@@ -116,16 +110,16 @@ export default function HUD() {
       </div>
 
       <div className="hud-menu">
-        <MenuButton label="Index" onClick={() => useGameStore.setState({ indexOpen: true })}>
+        <MenuButton label="Index" onClick={() => openWindow('index')}>
           <BookIcon />
         </MenuButton>
-        <MenuButton label="Arms">
+        <MenuButton label="Arms" onClick={() => openWindow('arms')}>
           <ArmIcon />
         </MenuButton>
-        <MenuButton label="Upgrades">
+        <MenuButton label="Upgrades" onClick={() => openWindow('upgrades')}>
           <UpgradeIcon />
         </MenuButton>
-        <MenuButton label="Rebirth" badge={`${Math.min(100, Math.floor((s.level / levelForRebirth(s.rebirths)) * 100))}%`} onClick={() => useGameStore.setState({ rebirthOpen: true })}>
+        <MenuButton label="Rebirth" badge={`${Math.min(100, Math.floor((s.level / levelForRebirth(s.rebirths)) * 100))}%`} onClick={() => openWindow('rebirth')}>
           <RebirthIcon />
         </MenuButton>
       </div>
@@ -145,27 +139,7 @@ export default function HUD() {
         <BackpackIcon className="hud-corner-pack" />
       </div>
 
-      <div className="hud-right">
-        <button className="hud-gamepass" onPointerDown={stop}>
-          <span className="hud-permanent rbx">Permanent!</span>
-          <span className="hud-gamepass-box">
-            <span className="hud-gamepass-price rbx">
-              <RobuxIcon className="hud-robux" />2
-            </span>
-            <span className="rbx">2X Strength</span>
-          </span>
-          <ArmIcon className="hud-gamepass-arm" />
-        </button>
-        <StrengthPack amount="100K" price="11" />
-        <StrengthPack amount="1M" price="59" />
-        <StrengthPack amount="10M" price="169" />
-        <button className="hud-pack" onPointerDown={stop}>
-          <GiftIcon className="hud-pack-icon" />
-          <span className="hud-pack-amount rbx">Free</span>
-        </button>
-      </div>
-
-      <div className="hud-progress">
+      <div className="hud-progress" style={s.sellOpen || s.rebirthOpen || s.indexOpen || s.upgradesOpen || s.armsOpen || s.auraOpen ? { display: 'none' } : undefined}>
         <div className="hud-strength rbx">{shortNumber(s.strength)} Strength</div>
         <div className="hud-level">
           <ArmIcon className="hud-level-arm" />
