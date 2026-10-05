@@ -5,9 +5,14 @@ on:
     branches: [main, dev]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -20,8 +25,10 @@ jobs:
 
       - name: Determine deploy channel
         id: channel
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
+          if [ "${REF_NAME}" = "main" ]; then
             echo "channel=prod" >> "$GITHUB_OUTPUT"
           else
             echo "channel=dev" >> "$GITHUB_OUTPUT"
@@ -38,9 +45,15 @@ jobs:
             echo "::error::LEGION_DEPLOY_TOKEN is not set (Settings > Secrets and variables > Actions > Secrets)."
             exit 1
           fi
+          if [ "${CHANNEL}" = "prod" ] && [ -z "${SERVER_URL_MAIN}" ]; then
+            echo "::error::SERVER_URL_MAIN is not set; the prod build would ship with no multiplayer/saving server."
+            exit 1
+          fi
         env:
           GAME_ID: ${{ vars.LEGION_GAME_ID || secrets.LEGION_GAME_ID }}
           DEPLOY_TOKEN: ${{ secrets.LEGION_DEPLOY_TOKEN }}
+          CHANNEL: ${{ steps.channel.outputs.channel }}
+          SERVER_URL_MAIN: ${{ vars.SERVER_URL_MAIN || secrets.SERVER_URL_MAIN }}
 
       - name: Build
         # prod = `vite build`; dev channel = `vite build --mode development`.

@@ -4,7 +4,7 @@
 // the same shared Bloxity base rig.
 
 // Slug this game is registered under on bloxity.io.
-export const GAME_SLUG = 'tnt-mining'
+export const GAME_SLUG = 'lift-rock-for-treasure'
 
 // Explicit dev-mode escape hatch (set via .env / .env.local, see
 // .env.example) — forces the Bloxity SDK (sdk.bloxity.io) and avatar CDN
