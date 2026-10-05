@@ -6,6 +6,7 @@ import { step as stepActionPopups } from '../systems/actionPopups.js'
 import { stepTraining } from '../systems/strengthGain.js'
 import { stepInteract } from '../systems/interact.js'
 import '../systems/loot.js' // registers loot pickup + Sell stall interactions
+import '../systems/plotSlots.js' // registers home-plot slot placement interactions
 
 // The single simulation tick. Rendered before the view components so its
 // useFrame subscribes first and runs first each frame.

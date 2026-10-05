@@ -168,6 +168,12 @@ export const ITEM_LUCK = {
   'Omega Star': 176,
 }
 
+// Luck Bonus %: sum of the Luck of every item placed on the home slots.
+export const luckBonus = (plotSlots) => Object.values(plotSlots).reduce((sum, it) => sum + (ITEM_LUCK[it.name] ?? 0), 0)
+
+// A gate's luck scaled by the bonus: x5 with +100% Luck Bonus -> x5 * (100+100)% = x10.
+export const finalLuck = (gateLuck, bonus) => Math.round(gateLuck * (100 + bonus)) / 100
+
 // Per-item reference: name -> { rarity, value in $, model }. `model` is the 3D
 // model asset for the item (null: models are built in code, see
 // components/world/LootItems.jsx).
@@ -221,12 +227,27 @@ const ZONE_ITEMS = [
   ['Infinity Gem', 'Cosmic Cube', 'Creator Crown', 'Golden Rocket', 'Omega Star', 'Eternity Clock', 'Genesis Seed', 'Cosmic Cube', 'Infinity Gem', 'Creator Crown', 'Aurora Veil', 'Omega Star'],
 ]
 
-// Loot lying on the Lift zones.
-// [name, rarity, value in $, x, z]; x is across the corridor, z runs north.
+// Loot lying on the Lift zones (base items, i.e. with no Luck Bonus).
+// [name, rarity, value in $, x, z, zone index, slot index]; x is across the corridor, z runs north.
 export const LOOT = LIFT_ZONES.flatMap((zn, zi) =>
   ZONE_ITEMS[zi].map((name, si) => {
     const { rarity, value } = ITEM_INFO[name]
     const [x, dz] = SLOTS[si]
-    return [name, rarity, value, x, zn.gate.zS - dz]
+    return [name, rarity, value, x, zn.gate.zS - dz, zi, si]
   }),
 )
+
+// Loot entry `i` as it lies under the current Luck Bonus: the slot keeps its spot but
+// holds the item of the highest zone whose luck is within the zone's final luck
+// (gate luck x (100 + bonus)%). x5 with +100% -> x10 -> the x10 zone's item.
+export function lootAt(i, bonus) {
+  const base = LOOT[i]
+  const [, , , x, z, zi, si] = base
+  const target = finalLuck(LIFT_ZONES[zi].luck, bonus)
+  let ei = zi
+  while (ei + 1 < LIFT_ZONES.length && LIFT_ZONES[ei + 1].luck <= target) ei++
+  if (ei === zi) return base
+  const name = ZONE_ITEMS[ei][si]
+  const { rarity, value } = ITEM_INFO[name]
+  return [name, rarity, value, x, z, zi, si]
+}

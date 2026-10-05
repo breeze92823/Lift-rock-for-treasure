@@ -32,6 +32,11 @@
 }
 .idx-cell .n { align-self: flex-start; font-size: 0.22rem; padding: 0.04rem 0.06rem 0; white-space: nowrap; }
 .idx-cell .ico { position: absolute; inset: 0.25rem 0 0.2rem; display: grid; place-items: center; font-size: 0.8rem; }
+.idx-cell.is-holdable { cursor: pointer; }
+.idx-cell.is-holdable:hover { filter: brightness(1.15); }
+.idx-cell .eq { position: absolute; right: 0.06rem; top: 0.04rem; font-size: 0.16rem; color: #9ad0ff; }
+.idx-cell .eq.is-on { color: #5ff03a; }
+.idx-cell.is-held { outline: 0.04rem solid #ffd84a; }
 .idx-cell .ico.is-unknown { filter: brightness(0); }
 .idx-cell .r { position: absolute; bottom: 0.02rem; font-size: 0.22rem; }
 .idx-cell .r.is-common { color: #bdbdbd; }

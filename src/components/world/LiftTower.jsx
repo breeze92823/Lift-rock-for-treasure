@@ -6,6 +6,8 @@ import { MAT, liftFloor, plastic } from '../../materials/world.js'
 import { liftStripeTexture, makeTimerBoard, tierTexture, zoneMarkerTexture } from '../../utils/labels.js'
 import { THROW_TIME, clearedGates, liftState } from '../../systems/liftGate.js'
 import { getDisplayName } from '../../systems/bloxity.js'
+import { useGameStore } from '../../store/useGameStore.js'
+import { finalLuck, luckBonus } from '../../data/loot.js'
 import { Block } from './parts.jsx'
 import LootItems from './LootItems.jsx'
 
@@ -127,7 +129,9 @@ function HealthBar({ b, z }) {
 // A luck barrier: dark plinth with its label on the south face, two rock
 // steps on top. Stands in the corridor until lifted.
 function Barrier({ b, name }) {
-  const map = useMemo(() => tierTexture(b.luck, b.req, name, b.plinth), [b.luck, b.req, name, b.plinth])
+  const bonus = useGameStore((s) => luckBonus(s.plotSlots))
+  const shown = finalLuck(b.luck, bonus)
+  const map = useMemo(() => tierTexture(shown, b.req, name, b.plinth), [shown, b.req, name, b.plinth])
   const z = (b.zS + b.zN) / 2
   const w = b.w
   const len = b.zS - b.zN
@@ -226,7 +230,8 @@ function ZoneEntry({ zn, floorW, padMap, gatewayMap }) {
 // then Gateway once its gate is gone) and a Loot Floor covered by that gate.
 export default function LiftTower() {
   const mouthStripe = useMemo(() => liftStripeTexture(2), []) // 4 m deep Lift Pad
-  const markers = useMemo(() => LIFT_ZONES.map((zn) => zoneMarkerTexture(zn.luck)), [])
+  const bonus = useGameStore((s) => luckBonus(s.plotSlots))
+  const markers = useMemo(() => LIFT_ZONES.map((zn) => zoneMarkerTexture(finalLuck(zn.luck, bonus))), [bonus])
   const name = getDisplayName()
   const half = LIFT.width / 2
   const len = LIFT.zStart - LIFT_END

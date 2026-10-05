@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, DoubleSide, Quaternion, Vector2, Vector3 } from 'three'
-import { LOOT } from '../../data/loot.js'
+import { LOOT, lootAt, luckBonus } from '../../data/loot.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { plastic } from '../../materials/world.js'
 import { canvasTexture } from '../../utils/textures.js'
@@ -752,7 +752,7 @@ function PorcelainVase() {
 }
 
 // Stand-in for items that don't have a dedicated 3D model yet.
-function GenericItem() {
+export function GenericItem() {
   return (
     <mesh position={[0, 0.5, 0]}>
       <octahedronGeometry args={[0.4]} />
@@ -761,13 +761,13 @@ function GenericItem() {
   )
 }
 
-const MODELS = {
+export const MODELS = {
   Coal, Bone, Skull, Mushroom, Anchor, Gem, 'Beaded Bracelet': Bracelet,
   Coin, 'Brass Bell': BrassBell, Binoculars, 'Iron Bar': IronBar, 'Pirate Hat': PirateHat,
   Anvil, Dagger, TNT, Bomb, Helmet, Quartz, Emerald, Amethyst, 'Porcelain Vase': PorcelainVase,
 }
 
-const RARITY = {
+export const RARITY = {
   Common: { fill: '#c9c9c9', glow: '#ffffff' },
   Uncommon: { fill: '#4dff3a', glow: '#7dffd0' },
   Rare: { fill: '#2fa8ff', glow: '#7fd0ff' },
@@ -778,7 +778,7 @@ const RARITY = {
   Celestial: { fill: '#7a3df0', glow: '#b48aff' },
   Divine: { fill: '#fff2a0', glow: '#fff8d0' },
 }
-const RARITY_FALLBACK = RARITY.Common
+export const RARITY_FALLBACK = RARITY.Common
 
 
 // White starburst: soft core plus long thin rays, tinted per rarity via the
@@ -855,9 +855,11 @@ function LootItem({ item: [name, rarity, value, x, z], i }) {
 // Items lying on `zone`'s Loot Floor (all items when no zone is given).
 export default function LootItems({ zone }) {
   const collected = useGameStore((s) => s.collectedLoot)
-  return LOOT.map((item, i) => {
-    const z = item[4]
+  const bonus = useGameStore((s) => luckBonus(s.plotSlots))
+  return LOOT.map((base, i) => {
+    const z = base[4]
     if (collected.includes(i) || (zone && (z > zone.gate.zS || z < zone.gate.zN))) return null
-    return <LootItem key={i} item={item} i={i} />
+    const item = lootAt(i, bonus)
+    return <LootItem key={`${i}:${item[0]}`} item={item} i={i} />
   })
 }

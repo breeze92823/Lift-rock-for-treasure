@@ -7,7 +7,7 @@ import { DEV_MODE } from '../data/bloxity.js'
 import { applyProportions, attachEquippedAccessories } from '../systems/avatarLoader.js'
 import { buildDefaultCharacter, loadBaseCharacter } from '../systems/defaultCharacter.js'
 import { useGameStore } from '../store/useGameStore.js'
-import { makeGait, updateGait, disposeGait } from '../systems/avatarAnim.js'
+import { makeGait, updateGait, disposeGait, setHolding } from '../systems/avatarAnim.js'
 
 const _up = new Vector3(0, 1, 0)
 const _targetQuat = new Quaternion()
@@ -98,6 +98,7 @@ export default function Player() {
 
     const gait = gaitRef.current
     if (gait) {
+      setHolding(gait, useGameStore.getState().heldItem ? 'both' : false)
       const speed01 = Math.hypot(player.velocity.x, player.velocity.z) / player.moveSpeed
       updateGait(gait, Math.min(delta, 0.1), speed01, player.grounded, player.bending, player.training, player.lifting)
     }

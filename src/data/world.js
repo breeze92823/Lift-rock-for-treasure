@@ -188,6 +188,16 @@ export const PLOTS = PLOT_ROWS_Z.flatMap((z) => [
 export const HOME_PLOT = 0 // index into PLOTS: the player's own (two storeys)
 const home = PLOTS[HOME_PLOT]
 export const HOME_SPAWN = { x: home.side * (PLOT.inner + 2.5), y: 0.3, z: home.z }
+// Ground-floor treasure slots on the home plot: 2 rows x 6, world-space centres.
+export const PLOT_SLOT = { count: 6, size: 2.6 }
+export const PLOT_ROW_Z = PLOT.depth / 2 - 2.4 // slot-row offset from the plot's centre line
+export const plotSlotXs = (cx) => {
+  const span = PLOT.width - 6
+  return Array.from({ length: PLOT_SLOT.count }, (_, i) => cx - span / 2 + (span / (PLOT_SLOT.count - 1)) * i)
+}
+export const HOME_SLOTS = [-1, 1].flatMap((s) =>
+  plotSlotXs(home.side * (PLOT.inner + PLOT.width / 2)).map((x) => ({ x, z: home.z + s * PLOT_ROW_Z })),
+)
 export const HOME_FACING = home.side < 0 ? -Math.PI / 2 : Math.PI / 2
 
 export const WORLD_BOUNDS = { minX: ARENA.minX, maxX: ARENA.maxX, minZ: LIFT_END, maxZ: ARENA.maxZ }

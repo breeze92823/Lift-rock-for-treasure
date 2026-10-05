@@ -480,3 +480,60 @@ export function homeIconTexture() {
 export function armIconTexture() {
   return canvasTexture('arm-icon', 256, 256, (ctx) => drawArm(ctx, 28, 28, 200))
 }
+
+// "Luck: +205%" floating text: lime title, white value, heavy dark outline.
+// Returns { map, aspect } like billboardTexture().
+export function luckTextTexture(total) {
+  const W = 1024
+  const H = 200
+  const map = canvasTexture(`luck-text:${total}`, W, H, (ctx) => {
+    ctx.font = font(120)
+    const a = ctx.measureText('Luck:').width
+    ctx.font = font(78)
+    const b = ctx.measureText(`+${total}%`).width
+    const x0 = W / 2 - (a + 24 + b) / 2
+    strokeText(ctx, 'Luck:', x0, H / 2, { size: 120, fill: '#c9ff1f', stroke: '#1d3a00', line: 22, align: 'left' })
+    strokeText(ctx, `+${total}%`, x0 + a + 24, H / 2 + 14, { size: 78, fill: '#ffffff', stroke: '#1d3a00', line: 16, align: 'left' })
+  })
+  return { map, aspect: W / H }
+}
+
+// Blue "Base Upgrade" signboard: house icon, upgrade cost and slots used/total.
+export function baseUpgradeSignTexture(used, total) {
+  return canvasTexture(`base-sign:${used}:${total}`, 1024, 480, (ctx, w, h) => {
+    roundRect(ctx, 0, 0, w, h, 50)
+    ctx.fillStyle = '#2f4f78'
+    ctx.fill()
+    roundRect(ctx, 14, 14, w - 28, h - 28, 40)
+    ctx.fillStyle = vgrad(ctx, 14, h, '#7fa6d6', '#5c82b4')
+    ctx.fill()
+    strokeText(ctx, 'Base Upgrade', w / 2, 100, { size: 120, line: 20 })
+    // orange cost bar
+    roundRect(ctx, 50, 190, w - 100, 190, 36)
+    ctx.fillStyle = vgrad(ctx, 190, 380, '#ffc23a', '#ff7a00')
+    ctx.fill()
+    ctx.lineWidth = 12
+    ctx.strokeStyle = '#7a3300'
+    ctx.stroke()
+    ctx.save()
+    ctx.translate(70, 200)
+    ctx.scale(0.55, 0.55)
+    ctx.drawImage(homeIconTexture().image, 0, 0)
+    ctx.restore()
+    strokeText(ctx, '2', 330, 270, { size: 90, line: 16 })
+    ctx.fillStyle = '#ff2b4a'
+    ctx.strokeStyle = '#5a0010'
+    ctx.lineWidth = 8
+    ctx.beginPath()
+    ctx.moveTo(430, 235)
+    ctx.lineTo(470, 235)
+    ctx.lineTo(490, 262)
+    ctx.lineTo(450, 305)
+    ctx.lineTo(410, 262)
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+    strokeText(ctx, '$5K', w - 80, 270, { size: 100, line: 18, align: 'right' })
+    strokeText(ctx, `Slots ${used}/${total}`, w / 2 + 40, 345, { size: 56, fill: '#34c3ff', stroke: '#06304a', line: 10 })
+  })
+}

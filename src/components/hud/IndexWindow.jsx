@@ -9,6 +9,7 @@ const REWARD_COUNT = 60 // treasures needed for the cash multiplier bonus
 export default function IndexWindow() {
   const open = useGameStore((s) => s.indexOpen)
   const discovered = useGameStore((s) => s.discovered)
+  const held = useGameStore((s) => s.heldItem)
   if (!open) return null
 
   const close = () => useGameStore.setState({ indexOpen: false })
@@ -28,11 +29,22 @@ export default function IndexWindow() {
         <div className="idx-grid">
           {ITEM_CATALOG.map(([name, rarity, glyph]) => {
             const known = discovered.includes(name)
+            // Common items can't be held; everything above Common can once discovered.
+            const holdable = known && rarity !== 'Common'
+            const isHeld = held?.name === name
+            const toggleHold = () =>
+              useGameStore.setState({ heldItem: isHeld ? null : { name, rarity, glyph } })
             return (
-              <div key={name} className="idx-cell">
+              <div
+                key={name}
+                className={`idx-cell ${holdable ? 'is-holdable' : ''} ${isHeld ? 'is-held' : ''}`}
+                onClick={holdable ? toggleHold : undefined}
+                title={holdable ? (isHeld ? 'Click to unequip' : 'Click to hold') : known && rarity === 'Common' ? 'Common items cannot be held' : undefined}
+              >
                 <span className="n rbx">{known ? name : '???'}</span>
                 <span className={`ico ${known ? '' : 'is-unknown'}`}>{glyph}</span>
                 <span className={`r rbx is-${rarity.toLowerCase()}`}>{rarity}</span>
+                {holdable && <span className={`eq rbx ${isHeld ? 'is-on' : ''}`}>{isHeld ? 'Equipped' : 'Equipable'}</span>}
               </div>
             )
           })}

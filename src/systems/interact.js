@@ -85,7 +85,7 @@ function nearestZone() {
 export function stepInteract() {
   // No prompt (and no re-firing) while the Sell window is open.
   const zone = (useGameStore.getState().sellOpen || useGameStore.getState().rebirthOpen || useGameStore.getState().indexOpen || useGameStore.getState().upgradesOpen || useGameStore.getState().armsOpen || useGameStore.getState().auraOpen) ? null : nearestZone()
-  interactState.near = zone ? { id: zone.id, prompt: zone.prompt } : null
+  interactState.near = zone ? { id: zone.id, prompt: typeof zone.prompt === 'function' ? zone.prompt() : zone.prompt } : null
 
   if (stepHold(zone ? zone.id : null, isInteractKeyDown(), zone?.holdMs)) {
     playConfirmPop()

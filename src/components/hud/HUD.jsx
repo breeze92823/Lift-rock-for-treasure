@@ -14,6 +14,7 @@ import UpgradesWindow from './UpgradesWindow.jsx'
 import ArmsWindow from './ArmsWindow.jsx'
 import AuraWindow from './AuraWindow.jsx'
 import { levelForRebirth } from '../../data/levels.js'
+import { luckBonus } from '../../data/loot.js'
 import Hotbar from './Hotbar.jsx'
 import { ArmIcon, BackpackIcon, BookIcon, CashIcon, FaceIcon, GearIcon, RebirthIcon, UpgradeIcon } from './icons.jsx'
 
@@ -134,7 +135,7 @@ export default function HUD() {
       <div className="hud-corner">
         <div className="hud-boost">
           <FaceIcon />
-          <span className="rbx">+{s.luckBoost}%</span>
+          <span className="rbx">+{luckBonus(s.plotSlots)}%</span>
         </div>
         <BackpackIcon className="hud-corner-pack" />
       </div>

@@ -1,4 +1,4 @@
-import { LOOT } from '../data/loot.js'
+import { LOOT, lootAt, luckBonus } from '../data/loot.js'
 import { LIFT_ZONES } from '../data/world.js'
 import { clearedGates, hubResetListeners } from './liftGate.js'
 import { useGameStore, openWindow } from '../store/useGameStore.js'
@@ -18,7 +18,7 @@ function collect(i) {
     showActionResult('Backpack full! Sell your loot', false)
     return false
   }
-  const [name, rarity, value] = LOOT[i]
+  const [name, rarity, value] = lootAt(i, luckBonus(s.plotSlots))
   useGameStore.setState({
     inventory: [...s.inventory, { name, rarity, value }],
     collectedLoot: [...s.collectedLoot, i],
@@ -47,7 +47,7 @@ export function sellItems(indices) {
 const removers = new Map() // loot index -> unregister fn for its pickup zone
 
 function registerLoot(i) {
-  const [name, , , x, z] = LOOT[i]
+  const [, , , x, z] = LOOT[i]
   // Loot sits under its zone's gate; it can't be collected until that gate is thrown.
   const gate = LIFT_ZONES.find((zn) => z <= zn.gate.zS && z >= zn.gate.zN)
   const remove = addZone({
@@ -56,7 +56,7 @@ function registerLoot(i) {
     z,
     range: 1.6,
     holdMs: 0,
-    prompt: `Collect ${name}`,
+    prompt: () => `Collect ${lootAt(i, luckBonus(useGameStore.getState().plotSlots))[0]}`,
     enabled: () => !gate || clearedGates.has(gate.luck),
     onConfirm: () => {
       if (collect(i)) {
