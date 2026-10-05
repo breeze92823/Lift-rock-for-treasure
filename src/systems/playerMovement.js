@@ -1,11 +1,11 @@
 import { padUnlocked } from './rebirth.js'
 import { showActionResult } from './actionResult.js'
 import { inputState } from './input.js'
-import { player } from './playerState.js'
-import { getYaw } from './cameraOrbit.js'
+import { player, resetPlayer } from './playerState.js'
+import { getYaw, syncYawToPlayer } from './cameraOrbit.js'
 import { terrainHeightAt } from './terrainHeight.js'
 import { stepLift } from './liftGate.js'
-import { PLAYER_MOVE_SPEED, TRAINING, TRAINING_SPOTS, WORLD_BOUNDS } from '../data/world.js'
+import { LIFT_DRAINS, PLAYER_MOVE_SPEED, SPAWN, SPAWN_FACING, TRAINING, TRAINING_SPOTS, WORLD_BOUNDS } from '../data/world.js'
 
 // Kinematic capsule, stepped once per frame: apply input -> gravity ->
 // integrate -> keep on the ground slab -> clamp to the ground height under
@@ -92,6 +92,18 @@ export function step(dt) {
     p.y = groundY
     if (player.velocity.y < 0) player.velocity.y = 0
     player.grounded = true
+  }
+
+  // Fell into a drainage channel beside the Lift corridor: the player dies and respawns.
+  if (player.grounded) {
+    for (const d of LIFT_DRAINS) {
+      if (p.x >= d.x0 && p.x <= d.x1 && p.z >= d.z0 && p.z <= d.z1 && p.y <= d.floor + 0.01) {
+        resetPlayer(SPAWN, SPAWN_FACING)
+        syncYawToPlayer()
+        showActionResult('You fell into the channel!', false)
+        return
+      }
+    }
   }
 
   // Standing on a training pad's rim: the avatar picks up the dumbbells.

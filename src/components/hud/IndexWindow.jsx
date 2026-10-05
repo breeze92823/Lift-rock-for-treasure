@@ -10,6 +10,7 @@ export default function IndexWindow() {
   const open = useGameStore((s) => s.indexOpen)
   const discovered = useGameStore((s) => s.discovered)
   const held = useGameStore((s) => s.heldItem)
+  const plotSlots = useGameStore((s) => s.plotSlots)
   if (!open) return null
 
   const close = () => useGameStore.setState({ indexOpen: false })
@@ -30,7 +31,8 @@ export default function IndexWindow() {
           {ITEM_CATALOG.map(([name, rarity, glyph]) => {
             const known = discovered.includes(name)
             // Common items can't be held; everything above Common can once discovered.
-            const holdable = known && rarity !== 'Common'
+            const placed = Object.values(plotSlots).some((it) => it.name === name)
+            const holdable = known && rarity !== 'Common' && !placed
             const isHeld = held?.name === name
             const toggleHold = () =>
               useGameStore.setState({ heldItem: isHeld ? null : { name, rarity, glyph } })
@@ -39,12 +41,13 @@ export default function IndexWindow() {
                 key={name}
                 className={`idx-cell ${holdable ? 'is-holdable' : ''} ${isHeld ? 'is-held' : ''}`}
                 onClick={holdable ? toggleHold : undefined}
-                title={holdable ? (isHeld ? 'Click to unequip' : 'Click to hold') : known && rarity === 'Common' ? 'Common items cannot be held' : undefined}
+                title={holdable ? (isHeld ? 'Click to unequip' : 'Click to hold') : placed ? 'Placed on your plot - pick it up first' : known && rarity === 'Common' ? 'Common items cannot be held' : undefined}
               >
                 <span className="n rbx">{known ? name : '???'}</span>
                 <span className={`ico ${known ? '' : 'is-unknown'}`}>{glyph}</span>
                 <span className={`r rbx is-${rarity.toLowerCase()}`}>{rarity}</span>
                 {holdable && <span className={`eq rbx ${isHeld ? 'is-on' : ''}`}>{isHeld ? 'Equipped' : 'Equipable'}</span>}
+                {placed && <span className="eq rbx">Placed</span>}
               </div>
             )
           })}

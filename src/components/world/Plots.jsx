@@ -110,7 +110,7 @@ const beamTexture = () =>
 
 // Enclosed ground-floor hall under the home plot's second storey: blue
 // checkered back wall, orange pillars, a smooth ceiling with round cyan lights.
-function GroundHall({ cx, z, side }) {
+function GroundHall({ cx, z, side, lights = true }) {
   const w = PLOT.width
   const d = PLOT.depth
   const hgt = UPPER_Y - PLOT.h
@@ -155,7 +155,8 @@ function GroundHall({ cx, z, side }) {
           </group>
         )),
       )}
-      {[-0.25, 0.25].map((f) =>
+      {lights &&
+        [-0.25, 0.25].map((f) =>
         lightZs.map((lz) => <pointLight key={`${f}${lz}`} position={[cx + f * w, UPPER_Y - 0.8, z + lz]} color="#bfe9ff" intensity={70} distance={18} decay={2} />),
       )}
     </group>
@@ -164,8 +165,7 @@ function GroundHall({ cx, z, side }) {
 
 // Total luck of everything placed on the home slots, and the signs at the
 // carpet entrance: "Base Upgrade" board and the "Luck: +N%" readout.
-function HomeSigns({ cx, z, side }) {
-  const placed = useGameStore((s) => s.plotSlots)
+function HomeSigns({ cx, z, side, placed }) {
   const items = Object.values(placed)
   const luck = luckBonus(placed)
   const { map: luckMap, aspect } = useMemo(() => luckTextTexture(luck), [luck])
@@ -229,16 +229,18 @@ export default function Plots() {
   const remotePlots = useRemoteStore((s) => s.plots)
   return PLOTS.map((p, i) => {
     const remote = i !== homePlot ? remotePlots[i] : null
+    const owned = i === homePlot || !!remote
+    const placed = i === homePlot ? homeSlots : remote?.slots
     const cx = p.side * (PLOT.inner + PLOT.width / 2)
     return (
       <group key={i}>
         <Block x={cx} z={p.z} w={PLOT.width} h={PLOT.h} d={PLOT.depth} mat={MAT.plot} />
-        <Deck cx={cx} z={p.z} y={0} pedestals={i === homePlot || !!remote} />
-        {i === homePlot && <UpperStorey cx={cx} z={p.z} side={p.side} />}
-        {i === homePlot && <PlacedItems plot={i} placed={homeSlots} />}
-        {remote && <PlacedItems plot={i} placed={remote.slots} />}
-        {i === homePlot && <GroundHall cx={cx} z={p.z} side={p.side} />}
-        {i === homePlot && <HomeSigns cx={cx} z={p.z} side={p.side} />}
+        <Deck cx={cx} z={p.z} y={0} pedestals={owned} />
+        {owned && <UpperStorey cx={cx} z={p.z} side={p.side} />}
+        {owned && <PlacedItems plot={i} placed={placed} />}
+        {/* point lights only on our own hall: more lights per scene means costlier shaders */}
+        {owned && <GroundHall cx={cx} z={p.z} side={p.side} lights={i === homePlot} />}
+        {owned && <HomeSigns cx={cx} z={p.z} side={p.side} placed={placed} />}
       </group>
     )
   })

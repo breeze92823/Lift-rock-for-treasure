@@ -1,6 +1,6 @@
 import { LIFT_ZONES } from './world.js'
 
-// Extra index collectables: [name, rarity, glyph, value in $]. Only those named in ZONE_ITEMS below spawn.
+// Extra index collectables: [name, rarity, glyph, value in $]. Any of them can spawn, by rarity (see pickItem).
 const EXTRA_ITEMS = [
   ['Pirate Hat', 'Rare', '🏴‍☠️', 630],
   ['Anvil', 'Rare', '⚒️', 735],
@@ -199,55 +199,50 @@ const SLOTS = [
   [6.5, 10.5], [-3, 12], [2, 14], [7, 15], [-6, 7.5], [5, 12.5],
 ]
 
-// What lies on each zone, in SLOTS order (one list per LIFT_ZONES entry).
-const ZONE_ITEMS = [
-  ['Coal', 'Bone', 'Coal', 'Skull', 'Anchor', 'Coal', 'Mushroom', 'Gem', 'Beaded Bracelet', 'Coal', 'Coin', 'Brass Bell'],
-  ['Coin', 'Iron Bar', 'Binoculars', 'Brass Bell', 'Coal', 'Bone', 'Gem', 'Pirate Hat', 'Anvil', 'Coin', 'Skull', 'Dagger'],
-  ['Iron Bar', 'Binoculars', 'Anvil', 'Dagger', 'TNT', 'Pirate Hat', 'Anchor', 'Brass Bell', 'Coin', 'Gem', 'TNT', 'Dagger'],
-  ['TNT', 'Bomb', 'Dagger', 'Anvil', 'Pirate Hat', 'Binoculars', 'Helmet', 'Quartz', 'Gem', 'Iron Bar', 'Bomb', 'Coin'],
-  ['Bomb', 'Helmet', 'Quartz', 'TNT', 'Anvil', 'Dagger', 'Pirate Hat', 'Gem', 'Binoculars', 'Brass Bell', 'Quartz', 'Bomb'],
-  ['Helmet', 'Quartz', 'Bomb', 'TNT', 'Dagger', 'Anvil', 'Pirate Hat', 'Helmet', 'Quartz', 'Anchor', 'Bomb', 'Gem'],
-  ['Quartz', 'Helmet', 'Bomb', 'Quartz', 'Helmet', 'TNT', 'Dagger', 'Pirate Hat', 'Anvil', 'Amethyst', 'Bomb', 'Porcelain Vase'],
-  ['Quartz', 'Helmet', 'Bomb', 'Emerald', 'TNT', 'Dagger', 'Amethyst', 'Helmet', 'Bomb', 'Porcelain Vase', 'Emerald', 'Bomb'],
-  // x100 - x300: Epic + Legendary
-  ['Amethyst', 'Phoenix Feather', 'Emerald', 'Star Fragment', 'Porcelain Vase', 'Kraken Eye', 'Dragon Egg', 'Titan Gauntlet', 'Amethyst', 'Sun Medallion', 'Quartz', 'Frost Crown'],
-  ['Emerald', 'Star Fragment', 'Amethyst', 'Griffin Claw', 'Phoenix Feather', 'Porcelain Vase', 'Kraken Eye', 'Storm Crown', 'Emerald', 'Titan Gauntlet', 'Sun Medallion', 'Amethyst'],
-  ['Porcelain Vase', 'Griffin Claw', 'Frost Crown', 'Amethyst', 'Storm Crown', 'Star Fragment', 'Emerald', 'Kraken Eye', 'Phoenix Feather', 'Titan Gauntlet', 'Time Crystal', 'Sun Medallion'],
-  ['Frost Crown', 'Storm Crown', 'Time Crystal', 'Griffin Claw', 'Amethyst', 'Star Fragment', 'Titan Gauntlet', 'Celestial Harp', 'Kraken Eye', 'Phoenix Feather', 'Emerald', 'Sun Medallion'],
-  // x500 - x1500: Legendary + Mythic
-  ['Time Crystal', 'Storm Crown', 'Celestial Harp', 'Frost Crown', 'Dream Catcher', 'Griffin Claw', 'Star Fragment', 'Obsidian Throne', 'Titan Gauntlet', 'Kraken Eye', 'Phoenix Feather', 'Sun Medallion'],
-  ['Dream Catcher', 'Time Crystal', 'Storm Crown', 'Celestial Harp', 'Obsidian Throne', 'Frost Crown', 'Phoenix Heart', 'Griffin Claw', 'Star Fragment', 'Time Crystal', 'Titan Gauntlet', 'Kraken Eye'],
-  ['Phoenix Heart', 'Obsidian Throne', 'Time Crystal', 'Dream Catcher', 'Celestial Harp', 'Storm Crown', 'Void Orb', 'Time Crystal', 'Frost Crown', 'Phoenix Heart', 'Griffin Claw', 'Obsidian Throne'],
-  ['Obsidian Throne', 'Void Orb', 'Phoenix Heart', 'Celestial Harp', 'Dream Catcher', 'Time Crystal', 'Astral Blade', 'Storm Crown', 'Phoenix Heart', 'Time Crystal', 'Obsidian Throne', 'Dream Catcher'],
-  // x2000 - x3000: Mythic + Celestial
-  ['Void Orb', 'Phoenix Heart', 'Astral Blade', 'Obsidian Throne', 'Rainbow Diamond', 'Celestial Harp', 'Dream Catcher', 'Excalibur', 'Time Crystal', 'Galaxy Pearl', 'Phoenix Heart', 'Ancient Dragon Skull'],
-  ['Excalibur', 'Aurora Veil', 'Void Orb', 'Phoenix Heart', 'Astral Blade', 'Galaxy Pearl', 'Obsidian Throne', 'Rainbow Diamond', 'Ancient Dragon Skull', 'Celestial Harp', 'Aurora Veil', 'Time Crystal'],
-  // x5000 - x10000: Celestial + Divine (the final floor is nearly all Divine)
-  ['Astral Blade', 'Golden Rocket', 'Galaxy Pearl', 'Cosmic Cube', 'Aurora Veil', 'Excalibur', 'Genesis Seed', 'Rainbow Diamond', 'Ancient Dragon Skull', 'Eternity Clock', 'Void Orb', 'Infinity Gem'],
-  ['Infinity Gem', 'Cosmic Cube', 'Creator Crown', 'Golden Rocket', 'Omega Star', 'Eternity Clock', 'Genesis Seed', 'Cosmic Cube', 'Infinity Gem', 'Creator Crown', 'Aurora Veil', 'Omega Star'],
-]
+// Luck-driven loot. A zone's total luck (gate luck x Luck Bonus, see finalLuck) sets how far up the
+// rarity ladder its items sit: at x1 the 12 slots hold 8 Common + 4 Uncommon, and at MAX_LUCK every
+// slot holds a Divine item. In between the mix climbs smoothly, one slot at a time.
+const TIERS = RARITIES.filter((r) => r !== 'Secret') // tiers that actually have items
+const POOLS = TIERS.map((r) => Object.keys(ITEM_INFO).filter((n) => ITEM_INFO[n].rarity === r))
+const MAX_LUCK = LIFT_ZONES[LIFT_ZONES.length - 1].luck // total luck at which everything is Divine
+const COMMON_SLOTS = 8 // slots that start Common; the rest start one tier higher
 
-// Loot lying on the Lift zones (base items, i.e. with no Luck Bonus).
-// [name, rarity, value in $, x, z, zone index, slot index]; x is across the corridor, z runs north.
+// Position on the rarity ladder (0 = Common ... TIERS.length - 1 = Divine) for a total luck.
+const ladder = (luck) => (Math.min(1, Math.log(Math.max(1, luck)) / Math.log(MAX_LUCK))) * (TIERS.length - 1)
+
+// Re-rolled every time the player returns to the hub, so the same slot holds a different item next run.
+let lootSeed = (Math.random() * 2 ** 32) >>> 0
+const seedListeners = new Set()
+export const rerollLoot = () => {
+  lootSeed = (lootSeed + 0x9e3779b9) >>> 0
+  seedListeners.forEach((fn) => fn())
+}
+export const subscribeLootSeed = (fn) => (seedListeners.add(fn), () => seedListeners.delete(fn))
+export const getLootSeed = () => lootSeed
+
+// Deterministic per (seed, loot index) so rendering and pickup always agree on the item.
+function hash(n) {
+  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b)
+  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b)
+  return (n ^ (n >>> 16)) >>> 0
+}
+
+function pickItem(luck, si, i) {
+  const tier = Math.min(TIERS.length - 1, Math.floor(ladder(luck) + si / COMMON_SLOTS))
+  const pool = POOLS[tier]
+  const name = pool[hash(lootSeed ^ Math.imul(i + 1, 0x9e3779b1)) % pool.length]
+  return [name, ITEM_INFO[name].rarity, ITEM_INFO[name].value]
+}
+
+// Loot spots on the Lift zones: [name, rarity, value in $, x, z, zone index, slot index] with the
+// item as it lies at zero Luck Bonus. x is across the corridor, z runs north.
 export const LOOT = LIFT_ZONES.flatMap((zn, zi) =>
-  ZONE_ITEMS[zi].map((name, si) => {
-    const { rarity, value } = ITEM_INFO[name]
-    const [x, dz] = SLOTS[si]
-    return [name, rarity, value, x, zn.gate.zS - dz, zi, si]
-  }),
+  SLOTS.map(([x, dz], si) => [...pickItem(zn.luck, si, zi * SLOTS.length + si), x, zn.gate.zS - dz, zi, si]),
 )
 
-// Loot entry `i` as it lies under the current Luck Bonus: the slot keeps its spot but
-// holds the item of the highest zone whose luck is within the zone's final luck
-// (gate luck x (100 + bonus)%). x5 with +100% -> x10 -> the x10 zone's item.
+// Loot entry `i` as it lies under the current Luck Bonus: the slot keeps its spot and its item is
+// rolled from the rarity tier that the zone's final luck (gate luck x (100 + bonus)%) reaches.
 export function lootAt(i, bonus) {
-  const base = LOOT[i]
-  const [, , , x, z, zi, si] = base
-  const target = finalLuck(LIFT_ZONES[zi].luck, bonus)
-  let ei = zi
-  while (ei + 1 < LIFT_ZONES.length && LIFT_ZONES[ei + 1].luck <= target) ei++
-  if (ei === zi) return base
-  const name = ZONE_ITEMS[ei][si]
-  const { rarity, value } = ITEM_INFO[name]
-  return [name, rarity, value, x, z, zi, si]
+  const [, , , x, z, zi, si] = LOOT[i]
+  return [...pickItem(finalLuck(LIFT_ZONES[zi].luck, bonus), si, i), x, z, zi, si]
 }

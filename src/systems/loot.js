@@ -1,4 +1,4 @@
-import { LOOT, lootAt, luckBonus } from '../data/loot.js'
+import { LOOT, lootAt, luckBonus, rerollLoot } from '../data/loot.js'
 import { LIFT_ZONES } from '../data/world.js'
 import { clearedGates, hubResetListeners } from './liftGate.js'
 import { useGameStore, openWindow } from '../store/useGameStore.js'
@@ -73,6 +73,7 @@ LOOT.forEach((_, i) => registerLoot(i))
 // Back in the hub: every item reappears under its gate (what's already in the
 // backpack stays there).
 hubResetListeners.push(() => {
+  rerollLoot()
   useGameStore.setState({ collectedLoot: [] })
   LOOT.forEach((_, i) => {
     if (!removers.has(i)) registerLoot(i)

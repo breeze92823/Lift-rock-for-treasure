@@ -7,6 +7,7 @@ import { DEV_MODE } from '../data/bloxity.js'
 import { applyProportions, attachEquippedAccessories } from '../systems/avatarLoader.js'
 import { buildDefaultCharacter, loadBaseCharacter } from '../systems/defaultCharacter.js'
 import { useGameStore } from '../store/useGameStore.js'
+import HeldItem from './HeldItem.jsx'
 import { makeGait, updateGait, disposeGait, setHolding } from '../systems/avatarAnim.js'
 
 const _up = new Vector3(0, 1, 0)
@@ -104,9 +105,12 @@ export default function Player() {
     }
   })
 
+  const heldName = useGameStore((s) => s.heldItem?.name)
+
   return (
     <group ref={ref}>
       <primitive object={avatar} />
+      <HeldItem avatar={avatar} name={heldName} />
     </group>
   )
 }
