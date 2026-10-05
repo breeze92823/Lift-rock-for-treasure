@@ -1,0 +1,291 @@
+/* HUD laid out on the 1920x976 reference: 1rem = 100 reference px (the html
+   font-size in index.css scales it to the viewport). */
+
+.hud {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  user-select: none;
+  font-family: Fredoka, 'Arial Black', sans-serif;
+  font-weight: 700;
+  line-height: 1;
+}
+.hud button {
+  pointer-events: auto;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.hud button:active { transform: scale(0.95); }
+.hud svg { display: block; overflow: visible; }
+
+/* Roblox-style outlined text: thick dark stroke painted under the fill. */
+.hud .rbx,
+.rbx {
+  color: #fff;
+  -webkit-text-stroke: 0.13em #111;
+  paint-order: stroke fill;
+  text-shadow: 0 0.05em 0 rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+/* --- Top: Spawn / Home --------------------------------------------------- */
+.hud-travel {
+  position: absolute;
+  top: 0.46rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.28rem;
+}
+.hud-travel-btn {
+  width: 2.84rem;
+  height: 1.12rem;
+  font-size: 0.66rem !important;
+  border-radius: 0.14rem;
+  border: 0.05rem solid !important;
+  box-shadow: inset 0 0.08rem 0 rgba(255, 255, 255, 0.35), inset 0 -0.1rem 0 rgba(0, 0, 0, 0.18), 0 0.05rem 0 rgba(0, 0, 0, 0.35);
+}
+.hud .hud-travel-btn.is-spawn {
+  background: linear-gradient(#df6bff, #a12ef0 55%, #7d15d6);
+  border-color: #46106e !important;
+}
+.hud .hud-travel-btn.is-home {
+  background: linear-gradient(#8cff55, #3fd41a 55%, #2bb40e);
+  border-color: #1b6a08 !important;
+}
+
+.hud-gear {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50% !important;
+  background: rgba(20, 22, 30, 0.75) !important;
+  display: grid;
+  place-items: center;
+}
+.hud-gear svg { width: 0.42rem; height: 0.42rem; }
+
+/* --- Left: stats, menu, backpack ---------------------------------------- */
+.hud-stats {
+  position: absolute;
+  left: 0.12rem;
+  top: 1.7rem;
+  width: 2.65rem;
+  height: 1.92rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.12rem;
+  padding-left: 0.12rem;
+  box-sizing: border-box;
+}
+.hud-stats::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 0.05rem solid #3b3b3e;
+  border-radius: 0.24rem;
+  background: linear-gradient(180deg, rgba(240, 240, 240, 0.92), rgba(205, 205, 210, 0.85));
+  -webkit-mask-image: linear-gradient(90deg, #000 70%, transparent);
+  mask-image: linear-gradient(90deg, #000 70%, transparent);
+}
+.hud-stat-row { position: relative; display: flex; align-items: center; gap: 0.1rem; }
+.hud-stat-icon { width: 0.66rem; height: 0.66rem; }
+.hud-stat-icon.is-small { width: 0.56rem; height: 0.56rem; margin: 0 0.05rem; }
+.hud .hud-rebirths { font-size: 0.48rem; color: #ff3a3a; }
+.hud .hud-cash { font-size: 0.76rem; color: #5ff03a; }
+
+.hud-menu {
+  position: absolute;
+  left: 0.05rem;
+  top: 3.62rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1.4rem);
+  row-gap: 0.18rem;
+}
+.hud-menu-btn {
+  position: relative;
+  width: 1.4rem;
+  height: 1.2rem;
+  display: flex;
+  justify-content: center;
+}
+.hud-menu-btn svg { width: 1.1rem; height: 1.1rem; filter: drop-shadow(0 0.04rem 0 rgba(0, 0, 0, 0.3)); }
+.hud-menu-label {
+  position: absolute;
+  bottom: -0.04rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.34rem;
+}
+.hud .hud-menu-badge {
+  position: absolute;
+  top: -0.12rem;
+  left: 0;
+  z-index: 1;
+  font-size: 0.36rem;
+  color: #7dff3a;
+  transform: rotate(-14deg);
+}
+
+.hud-backpack {
+  position: absolute;
+  left: 0.12rem;
+  top: 6.28rem;
+  width: 2.23rem;
+  height: 0.8rem;
+  box-sizing: border-box;
+  border: 0.05rem solid #3b3b3e;
+  border-radius: 0.12rem;
+  background: rgba(225, 225, 230, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding-left: 0.1rem;
+  font-size: 0.6rem;
+}
+.hud-backpack-icon { width: 0.72rem; height: 0.72rem; }
+
+.hud-corner {
+  position: absolute;
+  left: 0.08rem;
+  bottom: 0.12rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.18rem;
+}
+.hud-boost { position: relative; width: 0.7rem; height: 0.7rem; }
+.hud-boost span {
+  position: absolute;
+  left: -0.02rem;
+  bottom: -0.1rem;
+  font-size: 0.3rem;
+  font-style: italic;
+}
+.hud-corner-pack { width: 0.72rem; height: 0.72rem; }
+
+/* --- Right: gamepass + strength packs ------------------------------------ */
+.hud-right {
+  position: absolute;
+  right: 0.1rem;
+  top: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.hud-gamepass { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 0.2rem; }
+.hud .hud-permanent { font-size: 0.36rem; color: #ff2d2d; -webkit-text-stroke-color: #fff; text-shadow: 0 0.04em 0 #5a0000; margin-bottom: 0.04rem; }
+.hud-gamepass-box {
+  position: relative;
+  width: 2.75rem;
+  height: 0.76rem;
+  box-sizing: border-box;
+  border: 0.04rem solid #111;
+  background: linear-gradient(90deg, #ff2d6a, #ff9a1a, #ffe81a, #3ae03a, #1ad7ff, #3a5bff, #c23aff);
+  display: grid;
+  place-items: center;
+  font-size: 0.44rem;
+}
+.hud .hud-gamepass-price {
+  position: absolute;
+  top: -0.18rem;
+  left: -0.02rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.3rem;
+  color: #7dff3a;
+}
+.hud-gamepass-arm {
+  position: absolute;
+  left: -0.28rem;
+  bottom: -0.25rem;
+  width: 0.6rem;
+  height: 0.6rem;
+}
+.hud-robux { width: 0.3rem; height: 0.3rem; margin-right: 0.02rem; }
+
+.hud-pack {
+  position: relative;
+  width: 1.15rem;
+  height: 1.08rem;
+  margin-right: 0.15rem;
+  display: flex;
+  justify-content: center;
+}
+.hud-pack-icon { width: 0.98rem; height: 0.98rem; filter: drop-shadow(0 0.04rem 0 rgba(0, 0, 0, 0.3)); }
+.hud .hud-pack-price {
+  position: absolute;
+  top: -0.06rem;
+  right: -0.12rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.32rem;
+  color: #7dff3a;
+  z-index: 1;
+}
+.hud-pack-amount {
+  position: absolute;
+  bottom: -0.04rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.34rem;
+}
+
+/* --- Bottom: strength + level bar ---------------------------------------- */
+.hud-progress {
+  position: absolute;
+  left: 50%;
+  bottom: 1.42rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hud-strength { font-size: 0.56rem; margin-bottom: 0.16rem; }
+.hud-level { position: relative; padding-left: 0.6rem; }
+.hud-level-arm {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.08rem;
+  height: 1.08rem;
+  z-index: 1;
+}
+.hud-level-bar {
+  position: relative;
+  width: 9.02rem;
+  height: 0.82rem;
+  box-sizing: border-box;
+  border: 0.04rem solid #161616;
+  background: linear-gradient(#3c4a32, #26301f);
+  overflow: hidden;
+}
+.hud-level-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(#ffb43a, #ff8a10 55%, #ff7400);
+  box-shadow: inset 0 0.08rem 0 rgba(255, 255, 255, 0.3);
+  transition: width 0.25s ease-out;
+}
+.hud-level-text {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.58rem;
+}
+.hud-level-xp {
+  position: absolute;
+  right: 0.18rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.54rem;
+}
