@@ -1,10 +1,11 @@
-import { LOOT, lootAt, luckBonus, rerollLoot } from '../data/loot.js'
-import { LIFT_ZONES } from '../data/world.js'
+import { ITEM_INFO, LOOT, lootAt, luckBonus, rerollLoot } from '../data/loot.js'
+import { LIFT_ZONES, TREASURES } from '../data/world.js'
 import { clearedGates, hubResetListeners } from './liftGate.js'
 import { useGameStore, openWindow } from '../store/useGameStore.js'
 import { addZone, zones } from './interact.js'
 import { showActionResult } from './actionResult.js'
 import { rebirthMultiplier } from '../data/levels.js'
+import { shortMoney } from '../utils/shortMoney.js'
 
 // Collect loot into the backpack (E near an item) and sell the whole backpack
 // in the Sell window (E at the Sell stall ring opens it; `sellOpen`). Inventory lives in useGameStore: `inventory`
@@ -43,6 +44,39 @@ export function sellItems(indices) {
   useGameStore.setState({ cash: s.cash + total, inventory, backpack: inventory.length })
   showActionResult(`Sold ${sold.length} item${sold.length > 1 ? 's' : ''} for ${money(total)}`, true)
 }
+
+// Treasure pedestals (components/world/Treasures.jsx): E buys the displayed item into the backpack.
+function buyTreasure(t) {
+  const s = useGameStore.getState()
+  if (s.inventory.length >= s.backpackMax) {
+    showActionResult('Backpack full! Sell your loot', false)
+    return
+  }
+  if (s.cash < t.cost) {
+    showActionResult(`Not enough cash! Need ${shortMoney(t.cost)}`, false)
+    return
+  }
+  const { rarity, value } = ITEM_INFO[t.item]
+  useGameStore.setState({
+    cash: s.cash - t.cost,
+    inventory: [...s.inventory, { name: t.item, rarity, value }],
+    backpack: s.inventory.length + 1,
+    discovered: s.discovered.includes(t.item) ? s.discovered : [...s.discovered, t.item],
+  })
+  showActionResult(`Bought ${t.item} for ${shortMoney(t.cost)}`, true)
+}
+
+TREASURES.forEach((t) =>
+  addZone({
+    id: `treasure:${t.id}`,
+    x: t.x,
+    z: t.z,
+    range: 2.6,
+    holdMs: 500,
+    prompt: `Buy ${t.item} - ${shortMoney(t.cost)}`,
+    onConfirm: () => buyTreasure(t),
+  }),
+)
 
 const removers = new Map() // loot index -> unregister fn for its pickup zone
 

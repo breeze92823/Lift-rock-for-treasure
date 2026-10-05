@@ -121,12 +121,13 @@ export const LIFT_DRAINS = [-1, 1].map((s) => {
   return { x0: Math.min(inner, outer), x1: Math.max(inner, outer), z0: LIFT_END, z1: LIFT.zStart, floor: -DRAIN.depth }
 })
 
-// Treasure display pedestals just south of the Lift corridor mouth.
+// Treasure pedestals just south of the Lift corridor mouth. Each sells one Celestial / Divine loot
+// item (`item` = name in data/loot.js) for `cost` $; E on the pedestal buys it into the backpack.
 export const TREASURES = [
-  { id: 'robot', name: 'Robot Head', rarity: 'Secret', price: '$71.4M', x: -17, z: -66, pad: '#d8e6f0' },
-  { id: 'cursed', name: 'Cursed Box', rarity: 'Celestial', price: '$580M', x: -11, z: -69, pad: '#7a3df0' },
-  { id: 'jet', name: 'Jet', rarity: 'Secret', price: '$90M', x: -11, z: -63.5, pad: '#cfe9f7' },
-  { id: 'skull', name: 'Infinity Skull', rarity: 'Exclusive', count: '983/1000', note: '150% of your BEST Treasure!', x: 11, z: -66, pad: '#ff9d1c' },
+  { id: 'robot', item: 'Void Orb', cost: 71_400_000, x: -11, z: -60, pad: '#7a3df0' },
+  { id: 'cursed', item: 'Cosmic Cube', cost: 580_000_000, x: -11, z: -69, pad: '#ffd84a' },
+  { id: 'jet', item: 'Astral Blade', cost: 90_000_000, x: 11, z: -60, pad: '#7a3df0' },
+  { id: 'skull', item: 'Infinity Gem', cost: 450_000, x: 11, z: -66, pad: '#ffd84a' },
 ]
 
 // Raised blue stand the three leaderboards stand on; the player walks up onto it.
