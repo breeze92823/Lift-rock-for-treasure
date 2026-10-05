@@ -39,6 +39,8 @@ let lastVisible = ''
 let lastMove = ''
 let saveTimer = 0
 let started = false
+let everLoaded = false // progress received at least once; later drops reconnect silently
+let connecting = false
 let joinedAs = '' // user id the current connection was opened (or last identified) with
 
 // Dev builds and guests have no Bloxity id; a per-browser id keeps their progress too.
@@ -145,6 +147,7 @@ function syncRoster() {
 }
 
 async function connect() {
+  connecting = true
   try {
     const client = new Client(SERVER_URL)
     const r = await client.joinOrCreate('world', { userId: currentUserId(), username: getDisplayName(), avatar: avatarJson() })
@@ -152,17 +155,27 @@ async function connect() {
     joinedAs = currentUserId()
     lastSaved = lastVisible = lastMove = ''
     r.onMessage('leaderboard', (boards) => useLeaderboardStore.setState(boards))
+    r.onMessage('serverError', () => {
+      useGameStore.setState({ netError: 'Could not load your progress.' })
+      r.leave()
+    })
     r.onMessage('progress', (doc) => {
-      if (!hydrated) applyProgress(doc)
+      // Reconnect: local state is newer than the saved doc, so push it instead of re-hydrating.
+      const reconnect = hydrated
+      if (!reconnect) applyProgress(doc)
       else useGameStore.setState({ homePlot: doc.homePlot ?? 0 })
       hydrated = true
-      lastSaved = JSON.stringify(pick(useGameStore.getState(), SAVED))
+      everLoaded = true
+      lastSaved = reconnect ? '' : JSON.stringify(pick(useGameStore.getState(), SAVED))
       lastVisible = ''
+      useGameStore.setState({ progressLoaded: true, netError: '' })
+      if (reconnect) saveNow()
       onStoreChange(useGameStore.getState())
     })
     r.onMessage('noProgress', ({ homePlot = 0 } = {}) => {
-      useGameStore.setState({ homePlot })
+      useGameStore.setState({ homePlot, progressLoaded: true, netError: '' })
       hydrated = true
+      everLoaded = true
       lastSaved = '' // brand-new account: store the current (default) state right away
       saveNow()
       onStoreChange(useGameStore.getState())
@@ -172,18 +185,35 @@ async function connect() {
       remotes.clear()
       lastSig = ''
       useRemoteStore.setState({ ids: [], plots: {} })
-      // Local state is newer than the saved doc, so after reconnecting push instead of re-hydrating.
-      setTimeout(connect, RETRY_MS)
+      if (everLoaded) setTimeout(connect, RETRY_MS)
+      else if (!useGameStore.getState().netError) fail('Connection lost.')
     })
   } catch (err) {
-    console.warn('[net] server unavailable, playing offline', err?.message || err)
-    setTimeout(connect, RETRY_MS * 2)
+    console.warn('[net] could not join the server', err?.message || err)
+    if (everLoaded) setTimeout(connect, RETRY_MS * 2)
+    else fail(err?.message || 'Could not reach the server.')
+  } finally {
+    connecting = false
   }
+}
+
+// First load failed: stop retrying on our own and let the loading screen offer a "Try again" button.
+function fail(message) {
+  useGameStore.setState({ netError: message })
+}
+
+export function retryNet() {
+  if (connecting) return
+  useGameStore.setState({ netError: '' })
+  connect()
 }
 
 export function startNet() {
   if (started) return
-  if (!SERVER_URL) return console.warn('[net] no server URL configured, playing offline')
+  if (!SERVER_URL) {
+    useGameStore.setState({ progressLoaded: true })
+    return console.warn('[net] no server URL configured, playing offline')
+  }
   started = true
   useGameStore.subscribe(onStoreChange)
   setInterval(sendMove, 1000 / MOVE_HZ)
