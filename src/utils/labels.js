@@ -295,7 +295,7 @@ function drawAvatar(ctx, x, y, s, i) {
 
 // `rows`: [{ name, value }] ranked top-down; `icon`: 'cash' | 'power' | 'time'.
 export function leaderboardTexture(title, frame, icon, rows) {
-  return canvasTexture(`lb:${title}`, 640, 576, (ctx, w, h) => {
+  return canvasTexture(`lb:${title}:${JSON.stringify(rows)}`, 640, 576, (ctx, w, h) => {
     roundRect(ctx, 0, 0, w, h, 34)
     ctx.fillStyle = frame
     ctx.fill()
@@ -315,8 +315,13 @@ export function leaderboardTexture(title, frame, icon, rows) {
     rows.forEach((r, i) => {
       const y = top + i * step + step / 2
       roundRect(ctx, 34, y - step / 2 + 3, w - 68, step - 6, 10)
-      ctx.fillStyle = i % 2 ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.26)'
+      ctx.fillStyle = r.mine ? 'rgba(255,214,64,0.55)' : i % 2 ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.26)'
       ctx.fill()
+      if (r.mine) {
+        ctx.lineWidth = 4
+        ctx.strokeStyle = '#ffe14a' // the viewer's own row gets a gold outline
+        ctx.stroke()
+      }
       if (i < 3) {
         ctx.beginPath()
         ctx.arc(66, y, 20, 0, Math.PI * 2)

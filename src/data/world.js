@@ -132,16 +132,13 @@ export const TREASURES = [
 export const POOL = { x0: -51, x1: -35, z0: -60, z1: -32 }
 // Shallow arc: side boards turn inward, the middle one stands slightly back.
 // `rot` is the board's yaw (π/2 faces east, toward the hub).
-const LB_NAMES = ['xXRockKing', 'Builderman', 'NoobMaster', 'LiftQueen', 'Treasure4U', 'MightyMo', 'Guest_1337']
-const lbRows = (values) => values.map((value, i) => ({ name: LB_NAMES[i], value }))
+// `stat` = the store key in useLeaderboardStore; Pool.jsx fills the rows from the server.
 export const LEADERBOARDS = [
-  { title: 'Top Cash', icon: 'cash', frame: '#2fbf3a', x: -46, z: -53.5, rot: Math.PI / 2 - 0.4,
-    rows: lbRows(['$173.0T', '$113.9T', '$81.5T', '$60.7T', '$54.6T', '$50.1T', '$37.3T']) },
-  { title: 'Top Power', icon: 'power', frame: '#2f86e8', x: -47.5, z: -46, rot: Math.PI / 2,
-    rows: lbRows(['906.88T', '585.69T', '347.61T', '292.94T', '245.01T', '227.26T', '179.58T']) },
-  { title: 'Top Time', icon: 'time', frame: '#e8302f', x: -46, z: -38.5, rot: Math.PI / 2 + 0.4,
-    rows: lbRows(['6d 11h', '6d 1h', '5d 11h', '5d 3h', '4d 18h', '4d 6h', '4d 2h']) },
+  { title: 'Top Cash', stat: 'cash', icon: 'cash', frame: '#2fbf3a', x: -46, z: -53.5, rot: Math.PI / 2 - 0.4 },
+  { title: 'Top Power', stat: 'strength', icon: 'power', frame: '#2f86e8', x: -47.5, z: -46, rot: Math.PI / 2 },
+  { title: 'Top Time', stat: 'playTime', icon: 'time', frame: '#e8302f', x: -46, z: -38.5, rot: Math.PI / 2 + 0.4 },
 ]
+export const LEADERBOARD_ROWS = 7
 
 // Training: one raised platform, two rows of five slots. The front row
 // (nearest the hub plaza) has its middle slot left open as the entrance.
@@ -163,19 +160,19 @@ export const TRAINING = {
 }
 // Floor height a pad row stands on.
 export const rowBaseY = (row) => (row === 'back' ? TRAINING.tier.h : TRAINING.platform.h)
-// req: { type: 'starter' } | { type: 'rebirth', n } | { type: 'hex', n }.
-// The powers of the hex-gated pads (x15, x100, x250) are placeholders: the
-// reference screenshots hide their label text.
+// req: { type: 'starter' } | { type: 'rebirth', n }.
+// The powers of the x15, x100 and x250 pads are placeholders: the reference
+// screenshots hide their label text.
 export const TRAINING_PADS = [
   { row: 'front', slot: 0, power: 'x2', req: { type: 'rebirth', n: 1 }, pad: '#6fe0c4', rim: '#ff9e3d', bell: '#8a5a2b', bar: '#5ec9b4' },
   { row: 'front', slot: 1, power: 'x1.5', req: { type: 'starter' }, pad: '#9f8de8', rim: '#5b4aa8', bell: '#4a4f8a', bar: '#8d8fb5' },
   { row: 'front', slot: 3, power: 'x5', req: { type: 'rebirth', n: 2 }, pad: '#ffcb2e', rim: '#c98a00', bell: '#ff9d00', bar: '#4a4f58' },
   { row: 'front', slot: 4, power: 'x25', req: { type: 'rebirth', n: 7 }, pad: '#37d4ff', rim: '#1d7fd8', bell: '#1d6fd8', bar: '#37d4ff' },
-  { row: 'back', slot: 0, power: 'x15', req: { type: 'hex', n: 29 }, pad: '#d81e28', rim: '#7a0f16', bell: '#c8202a', bar: '#2b2b30', pattern: 'splatter' },
+  { row: 'back', slot: 0, power: 'x15', req: { type: 'rebirth', n: 5 }, pad: '#d81e28', rim: '#7a0f16', bell: '#c8202a', bar: '#2b2b30', pattern: 'splatter' },
   { row: 'back', slot: 1, power: 'x10', req: { type: 'rebirth', n: 4 }, pad: '#e8f4ff', rim: '#2fa0a8', bell: '#7fd6ff', bar: '#2fa0a8' },
-  { row: 'back', slot: 2, power: 'x100', req: { type: 'hex', n: 559 }, pad: '#ff4fd0', rim: '#a02a86', bell: '#ff7ae0', bar: '#ffe94a', pattern: 'leopard', cycle: true },
+  { row: 'back', slot: 2, power: 'x100', req: { type: 'rebirth', n: 15 }, pad: '#ff4fd0', rim: '#a02a86', bell: '#ff7ae0', bar: '#ffe94a', pattern: 'leopard', cycle: true },
   { row: 'back', slot: 3, power: 'x50', req: { type: 'rebirth', n: 10 }, pad: '#35d43a', rim: '#1f9a22', bell: '#1f9a22', bar: '#0f5f14' },
-  { row: 'back', slot: 4, power: 'x250', req: { type: 'hex', n: 225 }, pad: '#b7743e', rim: '#7a4320', bell: '#c98a4b', bar: '#7a4320', pattern: 'cookie', cookie: true },
+  { row: 'back', slot: 4, power: 'x250', req: { type: 'rebirth', n: 20 }, pad: '#b7743e', rim: '#7a4320', bell: '#c98a4b', bar: '#7a4320', pattern: 'cookie', cookie: true },
 ]
 
 // Player plots: long axis along X, entrance on the chevron-path side.
@@ -199,6 +196,27 @@ export const HOME_SLOTS = [-1, 1].flatMap((s) =>
   plotSlotXs(home.side * (PLOT.inner + PLOT.width / 2)).map((x) => ({ x, z: home.z + s * PLOT_ROW_Z })),
 )
 export const HOME_FACING = home.side < 0 ? -Math.PI / 2 : Math.PI / 2
+
+// Per-plot versions of the HOME_* constants above: the server assigns each player a plot index
+// (backend `homePlot`), so these take it instead of assuming HOME_PLOT.
+export const plotSpawn = (i) => ({ x: PLOTS[i].side * (PLOT.inner + 2.5), y: 0.3, z: PLOTS[i].z })
+export const plotFacing = (i) => (PLOTS[i].side < 0 ? -Math.PI / 2 : Math.PI / 2)
+export const plotSlotsAt = (i) =>
+  [-1, 1].flatMap((s) =>
+    plotSlotXs(PLOTS[i].side * (PLOT.inner + PLOT.width / 2)).map((x) => ({ x, z: PLOTS[i].z + s * PLOT_ROW_Z })),
+  )
+
+// Solid parts of the home plot's ground-floor hall (components/world/Plots.jsx):
+// treasure pedestals, orange pillars, corner posts and the back wall. Taller than
+// the step height so the player can't climb onto them.
+const HALL_H = PLOT.h + 1.6
+const hallCx = home.side * (PLOT.inner + PLOT.width / 2)
+const HOME_HALL_BLOCKS = [
+  ...HOME_SLOTS.map((p) => ({ x: p.x, z: p.z, w: 2.6, d: 2.6, h: HALL_H })),
+  ...[-1, 1].map((s) => ({ x: hallCx + home.side * (PLOT.width / 2 - 1.2), z: home.z + s * 5.5, w: 1, d: 1, h: HALL_H })),
+  ...[-1, 1].flatMap((sx) => [-1, 1].map((sz) => ({ x: hallCx + sx * (PLOT.width / 2 - 0.45), z: home.z + sz * (PLOT.depth / 2 - 0.45), w: 0.9, d: 0.9, h: HALL_H }))),
+  { x: hallCx + home.side * (PLOT.width / 2 - 0.15), z: home.z, w: 0.3, d: PLOT.depth, h: HALL_H },
+]
 
 export const WORLD_BOUNDS = { minX: ARENA.minX, maxX: ARENA.maxX, minZ: LIFT_END, maxZ: ARENA.maxZ }
 
@@ -266,6 +284,7 @@ export const BLOCKS = [
     w: 1.4, d: 1.4, h: 1.2,
   }))),
   ...PLOTS.map((p) => ({ x: p.side * (PLOT.inner + PLOT.width / 2), z: p.z, w: PLOT.width, d: PLOT.depth, h: PLOT.h })),
+  ...HOME_HALL_BLOCKS,
 ]
 
 export const COLLIDERS = BLOCKS.map((b) => ({

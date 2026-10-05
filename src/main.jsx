@@ -6,7 +6,9 @@ import { install as installInput } from './systems/input.js'
 import { install as installAudio } from './systems/audio.js'
 import { player, resetPlayer } from './systems/playerState.js'
 import { setView, syncYawToPlayer } from './systems/cameraOrbit.js'
-import { HOME_FACING, HOME_SPAWN, SPAWN, SPAWN_FACING } from './data/world.js'
+import { plotFacing, plotSpawn, SPAWN, SPAWN_FACING } from './data/world.js'
+import { useGameStore } from './store/useGameStore.js'
+import { startNet } from './systems/net.js'
 import { FONT_FAMILY } from './utils/labels.js'
 import { init as initBloxity } from './systems/bloxity.js'
 
@@ -15,6 +17,7 @@ resetPlayer(SPAWN, SPAWN_FACING)
 syncYawToPlayer()
 installInput()
 installAudio() // unlocks the AudioContext on the first gesture
+startNet() // Colyseus: saved progress + remote players
 
 // Dev-only console hook, e.g. __game.teleport(0, 0, -5)
 if (import.meta.env.DEV) {
@@ -22,7 +25,7 @@ if (import.meta.env.DEV) {
     player,
     setView,
     teleport: (x, y, z, facing = player.facing) => resetPlayer({ x, y, z }, facing),
-    home: () => resetPlayer(HOME_SPAWN, HOME_FACING),
+    home: () => resetPlayer(plotSpawn(useGameStore.getState().homePlot), plotFacing(useGameStore.getState().homePlot)),
   }
 }
 

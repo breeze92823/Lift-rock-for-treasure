@@ -12,7 +12,6 @@ function Row({ id, icon, cls }) {
   const cash = useGameStore((s) => s.cash)
   const maxed = lvl >= u.max
   const cost = u.cost(lvl)
-  const gemCost = u.gems(lvl)
   return (
     <div className={`up-row ${cls}`}>
       <div className="up-icon">{icon}</div>
@@ -20,15 +19,9 @@ function Row({ id, icon, cls }) {
       <div className="up-lvl rbx">{maxed ? 'MAX' : `Lvl. ${lvl}/${u.max}`}</div>
       <div className="up-values rbx">{maxed ? u.value(lvl) : `${u.value(lvl)} ➜ ${u.value(lvl + 1)}`}</div>
       {!maxed && (
-        <>
-          <button className={`up-buy rbx ${cash >= cost ? '' : 'is-poor'}`} onClick={() => buyUpgrade(id)}>
-            {money(cost)}
-          </button>
-          <button className="up-robux rbx" onClick={() => buyUpgrade(id, 'gems')}>
-            <span className="up-gem">💎</span>
-            {gemCost}
-          </button>
-        </>
+        <button className={`up-buy rbx ${cash >= cost ? '' : 'is-poor'}`} onClick={() => buyUpgrade(id)}>
+          {money(cost)}
+        </button>
       )}
     </div>
   )

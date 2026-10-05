@@ -9,6 +9,7 @@ import World from './components/World.jsx'
 import Sky from './components/Sky.jsx'
 import Lighting from './components/Lighting.jsx'
 import Player from './components/Player.jsx'
+import RemotePlayers from './components/RemotePlayers.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import HUD from './components/hud/HUD.jsx'
 
@@ -59,6 +60,7 @@ export default function App() {
           <LoadingGate onReady={onSceneReady} />
         </Suspense>
         <Player />
+        <RemotePlayers />
       </Canvas>
       <HUD />
       <LoadingScreen sceneReady={sceneReady} />

@@ -39,6 +39,7 @@ export const useGameStore = create(() => ({
   ownedArms: ['dirt'], // data/arms.js ids
   equippedArm: 'dirt',
   heldItem: null, // { name, rarity, glyph } picked from the Index (Uncommon and up; see IndexWindow.jsx)
+  homePlot: 0, // index into data/world.js PLOTS, assigned by the server (systems/net.js)
   plotSlots: {}, // home ground-floor slot index (data/world.js HOME_SLOTS) -> { name, rarity, glyph } (systems/plotSlots.js)
   discovered: [], // item names collected at least once (systems/loot.js)
   collectedLoot: [], // indices into data/loot.js LOOT already picked up

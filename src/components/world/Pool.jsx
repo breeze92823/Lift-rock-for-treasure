@@ -1,14 +1,24 @@
 import { useMemo } from 'react'
-import { LEADERBOARDS, POOL } from '../../data/world.js'
+import { LEADERBOARDS, LEADERBOARD_ROWS, POOL } from '../../data/world.js'
 import { MAT, plastic } from '../../materials/world.js'
 import { leaderboardTexture } from '../../utils/labels.js'
+import { useLeaderboardStore } from '../../store/useLeaderboardStore.js'
+import { formatCash, compactNumber, formatDuration } from '../../utils/format.js'
 import { Block, Flat } from './parts.jsx'
+
+const FORMAT = { cash: formatCash, strength: compactNumber, playTime: formatDuration }
 
 const CURB = 1.2
 const BOARD_W = 7
 const BOARD_H = 6.5
 
-function Leaderboard({ title, frame, icon, rows, x, z, rot }) {
+function Leaderboard({ title, stat, frame, icon, x, z, rot }) {
+  const data = useLeaderboardStore((s) => s[stat])
+  const rows = useMemo(() => {
+    const live = data.map((r) => ({ name: r.name, value: FORMAT[stat](r.value), mine: !!r.mine }))
+    while (live.length < LEADERBOARD_ROWS) live.push({ name: '---', value: '-' }) // not enough players yet
+    return live
+  }, [data, stat])
   const map = useMemo(() => leaderboardTexture(title, frame, icon, rows), [title, frame, icon, rows])
   return (
     <group position={[x, 0, z]} rotation-y={rot}>

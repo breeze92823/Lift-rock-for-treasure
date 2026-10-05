@@ -2,10 +2,11 @@ import { useMemo, useRef } from 'react'
 import { AdditiveBlending, DoubleSide } from 'three'
 import { canvasTexture } from '../../utils/textures.js'
 import { useFrame } from '@react-three/fiber'
-import { HOME_PLOT, PLOT, PLOTS, PLOT_SLOT, PLOT_ROW_Z, HOME_SLOTS, plotSlotXs as slotXs } from '../../data/world.js'
+import { PLOT, PLOTS, PLOT_SLOT, PLOT_ROW_Z, HOME_SLOTS, plotSlotsAt, plotSlotXs as slotXs } from '../../data/world.js'
 import { MAT, plastic } from '../../materials/world.js'
 import { homeIconTexture, luckTextTexture, baseUpgradeSignTexture } from '../../utils/labels.js'
 import { useGameStore } from '../../store/useGameStore.js'
+import { useRemoteStore } from '../../store/useRemoteStore.js'
 import { Block, Label } from './parts.jsx'
 import { MODELS, GenericItem, RARITY, RARITY_FALLBACK } from './LootItems.jsx'
 import { ITEM_LUCK, luckBonus } from '../../data/loot.js'
@@ -72,11 +73,11 @@ function Floating({ i, children }) {
 }
 
 // Items the player has placed on the home plot's ground-floor slots.
-function PlacedItems() {
-  const placed = useGameStore((s) => s.plotSlots)
+function PlacedItems({ plot, placed }) {
+  const slots = useMemo(() => plotSlotsAt(plot), [plot])
   return Object.entries(placed).map(([i, it]) => {
     const Model = MODELS[it.name] || GenericItem
-    const { x, z } = HOME_SLOTS[i]
+    const { x, z } = slots[i]
     const { fill } = RARITY[it.rarity] || RARITY_FALLBACK
     return (
       <group key={i} position={[x, PLOT.h + PEDESTAL_H, z]}>
@@ -223,16 +224,21 @@ function UpperStorey({ cx, z, side }) {
 
 // South plots either side of the chevron path.
 export default function Plots() {
+  const homePlot = useGameStore((s) => s.homePlot)
+  const homeSlots = useGameStore((s) => s.plotSlots)
+  const remotePlots = useRemoteStore((s) => s.plots)
   return PLOTS.map((p, i) => {
+    const remote = i !== homePlot ? remotePlots[i] : null
     const cx = p.side * (PLOT.inner + PLOT.width / 2)
     return (
       <group key={i}>
         <Block x={cx} z={p.z} w={PLOT.width} h={PLOT.h} d={PLOT.depth} mat={MAT.plot} />
-        <Deck cx={cx} z={p.z} y={0} pedestals={i === HOME_PLOT} />
-        {i === HOME_PLOT && <UpperStorey cx={cx} z={p.z} side={p.side} />}
-        {i === HOME_PLOT && <PlacedItems />}
-        {i === HOME_PLOT && <GroundHall cx={cx} z={p.z} side={p.side} />}
-        {i === HOME_PLOT && <HomeSigns cx={cx} z={p.z} side={p.side} />}
+        <Deck cx={cx} z={p.z} y={0} pedestals={i === homePlot || !!remote} />
+        {i === homePlot && <UpperStorey cx={cx} z={p.z} side={p.side} />}
+        {i === homePlot && <PlacedItems plot={i} placed={homeSlots} />}
+        {remote && <PlacedItems plot={i} placed={remote.slots} />}
+        {i === homePlot && <GroundHall cx={cx} z={p.z} side={p.side} />}
+        {i === homePlot && <HomeSigns cx={cx} z={p.z} side={p.side} />}
       </group>
     )
   })

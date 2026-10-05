@@ -3,7 +3,7 @@ import './hud.css'
 import { useGameStore, openWindow } from '../../store/useGameStore.js'
 import { player, resetPlayer } from '../../systems/playerState.js'
 import { showMenu } from '../../systems/bloxity.js'
-import { HOME_FACING, HOME_SPAWN, SPAWN, SPAWN_FACING } from '../../data/world.js'
+import { plotFacing, plotSpawn, SPAWN, SPAWN_FACING } from '../../data/world.js'
 import InteractPrompt from './InteractPrompt.jsx'
 import ActionResult from './ActionResult.jsx'
 import ActionPopups from './ActionPopups.jsx'
@@ -48,6 +48,7 @@ function MenuButton({ label, children, badge, onClick }) {
 // only re-render when the busy flag flips.
 function TravelButtons() {
   const [busy, setBusy] = useState(false)
+  const homePlot = useGameStore((s) => s.homePlot)
   const windowOpen = useGameStore((s) => s.sellOpen || s.rebirthOpen || s.indexOpen || s.upgradesOpen || s.armsOpen || s.auraOpen)
   useEffect(() => {
     let raf
@@ -66,7 +67,7 @@ function TravelButtons() {
       <button className="hud-travel-btn is-spawn rbx" disabled={busy} onPointerDown={stop} onClick={go(SPAWN, SPAWN_FACING)}>
         Spawn
       </button>
-      <button className="hud-travel-btn is-home rbx" disabled={busy} onPointerDown={stop} onClick={go(HOME_SPAWN, HOME_FACING)}>
+      <button className="hud-travel-btn is-home rbx" disabled={busy} onPointerDown={stop} onClick={go(plotSpawn(homePlot), plotFacing(homePlot))}>
         Home
       </button>
     </div>
