@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useGameStore } from '../../store/useGameStore.js'
 import { sellItems } from '../../systems/loot.js'
+import { arrowAt } from '../../data/tutorial.js'
 import { ITEM_ICON } from './itemIcons.js'
 import './sell.css'
 
@@ -9,6 +10,7 @@ import './sell.css'
 export default function SellWindow() {
   const open = useGameStore((s) => s.sellOpen)
   const inventory = useGameStore((s) => s.inventory)
+  const pointed = useGameStore((s) => arrowAt(s, 'sell-all'))
   const [filter, setFilter] = useState('ALL')
   const [asc, setAsc] = useState(true)
   if (!open) return null
@@ -31,7 +33,10 @@ export default function SellWindow() {
         <button className="sell-close rbx" onClick={close}>X</button>
         <div className="sell-bar">
           <span className="sell-total rbx">Total Value: <b>${total.toLocaleString('en-US')}</b></span>
-          <button className="sell-all rbx" onClick={() => sellItems()}>Sell All</button>
+          <button className="sell-all rbx" onClick={() => sellItems()}>
+            {pointed && <span className="ui-arrow" aria-hidden="true" />}
+            Sell All
+          </button>
         </div>
         <div className="sell-list">
           {shown.map((it) => (

@@ -431,3 +431,92 @@
   100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
 }
 
+
+/* --- Tutorial: quest banner + UI arrow ------------------------------------ */
+.quest {
+  position: absolute;
+  top: 1.9rem; /* just below the Spawn / Home buttons */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4.9rem;
+  height: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffc93a;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0 22%, rgba(190, 120, 0, 0.18) 26% 32%, transparent 36%);
+  background-size: 0.22rem 0.22rem;
+  border: 0.02rem solid #1c1c1c;
+  border-radius: 0.06rem;
+  box-shadow: inset 0 -0.035rem 0 rgba(0, 0, 0, 0.12);
+}
+.quest-tag {
+  position: absolute;
+  top: -0.11rem;
+  font-size: 0.14rem;
+  color: #ffd84a;
+}
+.quest-text { font-size: 0.26rem; }
+.quest-leaving {
+  animation: quest-pop-out 0.5s ease-in forwards;
+  pointer-events: none;
+}
+@keyframes quest-pop-out {
+  0% { opacity: 1; transform: translateX(-50%) scale(1); }
+  30% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+  100% { opacity: 0; transform: translateX(-50%) scale(0.2); }
+}
+
+/* Bouncing arrow beside a HUD button, pointing at it from the right. */
+.ui-arrow {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 0.5rem;
+  height: 0.6rem;
+  margin-top: -0.3rem;
+  z-index: 2;
+  background: #ffd84a;
+  clip-path: polygon(0 50%, 100% 0, 100% 30%, 100% 70%, 100% 100%);
+  filter: drop-shadow(0 0 0.03rem #111) drop-shadow(0 0.04rem 0 rgba(0, 0, 0, 0.35));
+  animation: ui-arrow-bounce 0.7s ease-in-out infinite;
+}
+@keyframes ui-arrow-bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(0.18rem); }
+}
+
+/* Variant that sits to the left of its button and points right (for buttons at a container's right edge). */
+.ui-arrow.is-left {
+  left: auto;
+  right: 100%;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  animation-name: ui-arrow-bounce-left;
+}
+@keyframes ui-arrow-bounce-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-0.18rem); }
+}
+
+/* Variant that sits over its target and points down (inside scrolling lists, where side arrows are clipped). */
+.ui-arrow.is-down {
+  top: 0.05rem;
+  left: 50%;
+  width: 0.5rem;
+  height: 0.45rem;
+  margin: 0 0 0 -0.25rem;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  animation-name: ui-arrow-bounce-down;
+  z-index: 3;
+}
+@keyframes ui-arrow-bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(0.14rem); }
+}
+
+/* Long tutorial message (final luck explanation): wraps onto two lines. */
+.quest.is-long { width: 6.6rem; height: auto; min-height: 0.5rem; padding: 0.1rem 0.2rem; box-sizing: border-box; }
+.quest.is-long .quest-text { white-space: normal; text-align: center; font-size: 0.22rem; line-height: 1.15; }
+
+/* "Scroll down" arrow: floats at the bottom of the Index grid, bouncing downward. */
+.ui-arrow.is-scroll { top: auto; bottom: 1.15rem; }

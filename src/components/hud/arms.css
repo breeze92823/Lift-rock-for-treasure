@@ -54,3 +54,10 @@
   .arms-window { --u: min(calc(100vw / 8.4), calc(100vh / 5.6)); }
   .arms-panel { width: calc(var(--u) * 7.7); max-width: 94vw; }
 }
+
+/* Tutorial discount: the normal price, struck through, above the reduced one. */
+.hud .arms-btn { position: relative; }
+.arms-was {
+  position: absolute; left: 50%; top: calc(var(--u) * -0.34); transform: translateX(-50%);
+  font-size: calc(var(--u) * 0.3); color: #ff6a6a; text-decoration: line-through; text-decoration-thickness: calc(var(--u) * 0.05);
+}

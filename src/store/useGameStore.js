@@ -47,8 +47,8 @@ export const useGameStore = create(() => ({
   auraOpen: false, // Aura window (components/hud/AuraWindow.jsx)
   ownedAuras: ['none'], // data/auras.js ids
   equippedAura: 'none',
-  ownedArms: ['dirt'], // data/arms.js ids
-  equippedArm: 'dirt',
+  ownedArms: [], // data/arms.js ids
+  equippedArm: null,
   heldItem: null, // { name, rarity, glyph } picked from the Index (Uncommon and up; see IndexWindow.jsx)
   homePlot: 0, // index into data/world.js PLOTS, assigned by the server (systems/net.js)
   homeStyleAll: false, // true: plots nobody owns are drawn as the home build; false: they keep the original flat look (components/world/Plots.jsx)
@@ -56,7 +56,12 @@ export const useGameStore = create(() => ({
   plotSlots: {}, // home ground-floor slot index (data/world.js HOME_SLOTS) -> { name, rarity, glyph } (systems/plotSlots.js)
   discovered: [], // item names collected at least once (systems/loot.js)
   collectedLoot: [], // indices into data/loot.js LOOT already picked up
+  offlineEarnings: null, // { seconds, cash, strength } waiting to be claimed (components/hud/OfflineWindow.jsx; set by systems/net.js)
+  offlineClaiming: false,
   luckBoost: 0, // % shown bottom-left
+  tutorialStep: 0, // 0 train, 1 lift first rock, 2 grab loot, 3 sell, 4 buy Dirt arm, 5 train to 100, 6 go home, 7 rebirth, 8-17 more training/loot/Index/placing steps, 18 done (data/tutorial.js, hud/Tutorial.jsx)
+  tutorialItem: null, // name of the Uncommon item picked up on the tutorial's loot step (Index arrow, Tutorial.jsx)
+  tutorialActive: false, // set once saved progress shows a new player; the banner and trails stay hidden until then
 }))
 
 // Opens one HUD window ('sell' | 'rebirth' | 'upgrades' | 'index' | 'arms' | 'aura') and closes all the others.

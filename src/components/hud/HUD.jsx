@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './hud.css'
 import { useGameStore, openWindow } from '../../store/useGameStore.js'
 import { player, resetPlayer } from '../../systems/playerState.js'
-import { authState, isAvailable, login, showMenu } from '../../systems/bloxity.js'
+import { authState, isAvailable, login } from '../../systems/bloxity.js'
 import { useAuth } from '../../systems/bloxityHooks.js'
 import { plotFacing, plotSpawn, SPAWN, SPAWN_FACING } from '../../data/world.js'
 import InteractPrompt from './InteractPrompt.jsx'
@@ -14,10 +14,12 @@ import IndexWindow from './IndexWindow.jsx'
 import UpgradesWindow from './UpgradesWindow.jsx'
 import ArmsWindow from './ArmsWindow.jsx'
 import AuraWindow from './AuraWindow.jsx'
+import OfflineWindow from './OfflineWindow.jsx'
 import { levelForRebirth } from '../../data/levels.js'
-import { luckBonus } from '../../data/loot.js'
 import Hotbar from './Hotbar.jsx'
-import { ArmIcon, BackpackIcon, BookIcon, CashIcon, FaceIcon, GearIcon, RebirthIcon, UpgradeIcon } from './icons.jsx'
+import TutorialBanner from './Tutorial.jsx'
+import { arrowAt } from '../../data/tutorial.js'
+import { ArmIcon, BackpackIcon, BookIcon, CashIcon, RebirthIcon, UpgradeIcon } from './icons.jsx'
 
 const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi']
 function shortNumber(n) {
@@ -34,9 +36,11 @@ const cash = (n) => (n < 1e6 ? `$${Math.floor(n).toLocaleString('en-US')}` : `$$
 // Keeps a click on the HUD from also reaching the world input handlers.
 const stop = (e) => e.stopPropagation()
 
-function MenuButton({ label, children, badge, onClick }) {
+function MenuButton({ id, label, children, badge, onClick }) {
+  const pointed = useGameStore((s) => arrowAt(s, id))
   return (
     <button className="hud-menu-btn" onPointerDown={stop} onClick={onClick}>
+      {pointed && <span className="ui-arrow" aria-hidden="true" />}
       {badge && <span className="hud-menu-badge rbx">{badge}</span>}
       {children}
       <span className="hud-menu-label rbx">{label}</span>
@@ -98,21 +102,19 @@ export default function HUD() {
       <InteractPrompt />
       <ActionResult />
       <ActionPopups />
+      <TutorialBanner />
       <SellWindow />
       <RebirthWindow />
       <IndexWindow />
       <UpgradesWindow />
       <ArmsWindow />
       <AuraWindow />
+      <OfflineWindow />
       <Hotbar />
 
       <TravelButtons />
 
       <LoginButton />
-
-      <button className="hud-gear" onPointerDown={stop} onClick={() => showMenu()} aria-label="Settings">
-        <GearIcon />
-      </button>
 
       <div className="hud-stats">
         <div className="hud-stat-row">
@@ -126,16 +128,16 @@ export default function HUD() {
       </div>
 
       <div className="hud-menu">
-        <MenuButton label="Index" onClick={() => openWindow('index')}>
+        <MenuButton id="index" label="Index" onClick={() => openWindow('index')}>
           <BookIcon />
         </MenuButton>
         <MenuButton label="Arms" onClick={() => openWindow('arms')}>
           <ArmIcon />
         </MenuButton>
-        <MenuButton label="Upgrades" onClick={() => openWindow('upgrades')}>
+        <MenuButton id="upgrades" label="Upgrades" onClick={() => openWindow('upgrades')}>
           <UpgradeIcon />
         </MenuButton>
-        <MenuButton label="Rebirth" badge={`${Math.min(100, Math.floor((s.level / levelForRebirth(s.rebirths)) * 100))}%`} onClick={() => openWindow('rebirth')}>
+        <MenuButton id="rebirth" label="Rebirth" badge={`${Math.min(100, Math.floor((s.level / levelForRebirth(s.rebirths)) * 100))}%`} onClick={() => openWindow('rebirth')}>
           <RebirthIcon />
         </MenuButton>
       </div>
@@ -145,14 +147,6 @@ export default function HUD() {
         <span className="rbx">
           {s.backpack}/{s.backpackMax}
         </span>
-      </div>
-
-      <div className="hud-corner">
-        <div className="hud-boost">
-          <FaceIcon />
-          <span className="rbx">+{luckBonus(s.plotSlots)}%</span>
-        </div>
-        <BackpackIcon className="hud-corner-pack" />
       </div>
 
       <div className="hud-progress" style={s.sellOpen || s.rebirthOpen || s.indexOpen || s.upgradesOpen || s.armsOpen || s.auraOpen ? { display: 'none' } : undefined}>

@@ -12,6 +12,7 @@ import { player } from './playerState.js'
 import { authState, getDisplayName, getEquippedAvatar, getStableUserId, onAvatarChanged, subscribeAuth } from './bloxity.js'
 import { DEV_MODE } from '../data/bloxity.js'
 import { UPGRADES, moveSpeedFor } from '../data/upgrades.js'
+import { TUTORIAL_DONE } from '../data/tutorial.js'
 
 // Two Legion channels (`dev` branch -> dev, `main` -> prod), each with its own hostname; Vite's MODE
 // picks one at build time. Empty = no server configured: the game stays single-player.
@@ -28,6 +29,7 @@ const FIRST_LOAD_BACKOFF_MS = [2000, 4000, 8000, 12000, 15000, 15000] // then gi
 const SAVED = [
   'cash', 'gems', 'rebirths', 'strength', 'level', 'xp', 'xpNeeded', 'backpackLevel', 'speedLevel',
   'inventory', 'ownedAuras', 'equippedAura', 'ownedArms', 'equippedArm', 'heldItem', 'plotSlots', 'baseUpgraded', 'discovered',
+  'tutorialStep', 'tutorialItem',
 ]
 // Subset other players can see; sent right away instead of waiting for the save debounce.
 const VISIBLE = ['equippedAura', 'equippedArm', 'level', 'rebirths', 'heldItem', 'baseUpgraded']
@@ -69,9 +71,35 @@ const avatarJson = () => {
   }
 }
 
+// Tutorial progress is also kept in this browser: guests are never saved by the server, and it
+// covers backends that predate the field. The furthest step of the two wins.
+const tutorialKey = () => `lrft-tutorial:${currentUserId()}`
+function readLocalTutorial() {
+  try {
+    const t = JSON.parse(localStorage.getItem(tutorialKey()))
+    return Number.isInteger(t?.step) ? { step: Math.min(TUTORIAL_DONE, Math.max(0, t.step)), item: t.item ?? null } : null
+  } catch {
+    return null
+  }
+}
+function writeLocalTutorial(step, item) {
+  try {
+    localStorage.setItem(tutorialKey(), JSON.stringify({ step, item }))
+  } catch {}
+}
+// Furthest known tutorial step for the account: `doc` is the saved doc (or {} for a new account).
+function resolveTutorial(doc) {
+  const local = readLocalTutorial()
+  const remote = Number.isInteger(doc.tutorialStep) ? { step: doc.tutorialStep, item: doc.tutorialItem ?? null } : null
+  const best = !local ? remote : !remote || local.step > remote.step ? local : remote
+  if (!best) return {}
+  return { tutorialStep: best.step, tutorialItem: best.item, tutorialActive: best.step < TUTORIAL_DONE }
+}
+
 function applyProgress(doc) {
   const patch = {}
   for (const k of SAVED) if (doc[k] !== undefined) patch[k] = doc[k]
+  Object.assign(patch, resolveTutorial(doc))
   patch.homePlot = doc.homePlot ?? 0
   if (patch.inventory) patch.backpack = patch.inventory.length
   if (patch.backpackLevel) patch.backpackMax = UPGRADES.backpack.value(patch.backpackLevel)
@@ -172,6 +200,11 @@ async function connect() {
     joinedAs = currentUserId()
     lastSaved = lastVisible = lastMove = ''
     r.onMessage('leaderboard', (boards) => useLeaderboardStore.setState(boards))
+    r.onMessage('offlineEarnings', (offer) => useGameStore.setState({ offlineEarnings: offer, offlineClaiming: false }))
+    r.onMessage('offlineClaimed', ({ cash = 0, strength = 0 }) => {
+      const st = useGameStore.getState()
+      useGameStore.setState({ cash: st.cash + cash, strength: st.strength + strength, offlineEarnings: null, offlineClaiming: false })
+    })
     r.onMessage('serverError', () => {
       useGameStore.setState({ netError: 'Could not load your progress.' })
       r.leave()
@@ -190,7 +223,7 @@ async function connect() {
       onStoreChange(useGameStore.getState())
     })
     r.onMessage('noProgress', ({ homePlot = 0 } = {}) => {
-      useGameStore.setState({ homePlot, progressLoaded: true, netError: '', netWaking: false })
+      useGameStore.setState({ ...resolveTutorial({}), homePlot, progressLoaded: true, netError: '', netWaking: false })
       hydrated = true
       everLoaded = true
       lastSaved = '' // brand-new account: store the current (default) state right away
@@ -230,6 +263,13 @@ export function retryNet() {
   connect()
 }
 
+// Asks the server to pay out the pending offline earnings; the reward is applied on `offlineClaimed`.
+export function claimOffline() {
+  if (!room || useGameStore.getState().offlineClaiming) return
+  useGameStore.setState({ offlineClaiming: true })
+  room.send('claimOffline')
+}
+
 export function startNet() {
   if (started) return
   if (!SERVER_URL) {
@@ -238,6 +278,9 @@ export function startNet() {
   }
   started = true
   useGameStore.subscribe(onStoreChange)
+  useGameStore.subscribe((st, prev) => {
+    if (hydrated && (st.tutorialStep !== prev.tutorialStep || st.tutorialItem !== prev.tutorialItem)) writeLocalTutorial(st.tutorialStep, st.tutorialItem)
+  })
   useGameStore.subscribe((st, prev) => {
     if (st.baseUpgraded && !prev.baseUpgraded) {
       try { localStorage.setItem(`lrft-base-upgraded:${currentUserId()}`, '1') } catch {}

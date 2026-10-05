@@ -36,3 +36,5 @@
 }
 .hud .rb-go.is-locked { background: #555; border-color: #222; opacity: 0.7; cursor: not-allowed; }
 
+
+.hud .rb-go { position: relative; }

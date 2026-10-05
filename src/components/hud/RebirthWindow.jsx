@@ -1,6 +1,7 @@
 import { useGameStore } from '../../store/useGameStore.js'
 import { levelForRebirth, rebirthMultiplier } from '../../data/levels.js'
-import { doRebirth } from '../../systems/rebirth.js'
+import { canRebirth, doRebirth } from '../../systems/rebirth.js'
+import { arrowAt } from '../../data/tutorial.js'
 import { ArmIcon, CashIcon, RebirthIcon } from './icons.jsx'
 import './rebirth.css'
 
@@ -21,10 +22,11 @@ export default function RebirthWindow() {
   const open = useGameStore((s) => s.rebirthOpen)
   const level = useGameStore((s) => s.level)
   const rebirths = useGameStore((s) => s.rebirths)
+  const ready = useGameStore((s) => canRebirth(s))
+  const pointed = useGameStore((s) => arrowAt(s, 'rebirth-go'))
   if (!open) return null
 
   const need = levelForRebirth(rebirths)
-  const ready = level >= need
   const close = () => useGameStore.setState({ rebirthOpen: false })
   const from = rebirthMultiplier(rebirths)
   const to = rebirthMultiplier(rebirths + 1)
@@ -42,6 +44,7 @@ export default function RebirthWindow() {
           <span className="rbx">Level {Math.min(level, need)}/{need}</span>
         </div>
         <button className={`rb-go rbx ${ready ? '' : 'is-locked'}`} disabled={!ready} onClick={doRebirth}>
+          {pointed && <span className="ui-arrow is-left" aria-hidden="true" />}
           {ready ? 'Rebirth' : `Reach Level ${need}`}
         </button>
       </div>

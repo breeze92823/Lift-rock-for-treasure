@@ -1,8 +1,8 @@
 // Arm skins shown in the Arms window. The equipped arm multiplies strength gained
-// (systems/strengthGain.js). `price` 0 = owned from the start, null = not buyable with cash.
+// (systems/strengthGain.js). no arm is owned at the start (x1 gain); `price` null = not buyable with cash.
 // `pattern` + `palette` generate the block icon (components/hud/armTextures.js).
 export const ARMS = [
-  { id: 'dirt', name: 'Dirt', rarity: 'Common', mult: 2, price: 0, pattern: 'noise', palette: ['#b5703c', '#9a5c2e', '#c88650', '#7a4620'] },
+  { id: 'dirt', name: 'Dirt', rarity: 'Common', mult: 2, price: 100, pattern: 'noise', palette: ['#b5703c', '#9a5c2e', '#c88650', '#7a4620'] },
   { id: 'wood', name: 'Wood', rarity: 'Uncommon', mult: 5, price: 1000, pattern: 'grain', palette: ['#a67c3e', '#8a6430', '#bf9450', '#5e4420'] },
   { id: 'cobblestone', name: 'Cobblestone', rarity: 'Uncommon', mult: 10, price: 25000, pattern: 'stone', palette: ['#c4c8d0', '#a4a8b2', '#8a8e98', '#6a6e78'] },
   { id: 'brick', name: 'Brick', rarity: 'Rare', mult: 20, price: 100000, pattern: 'brick', palette: ['#b0472f', '#c05a3c', '#9a3a26', '#d8c8b0'] },

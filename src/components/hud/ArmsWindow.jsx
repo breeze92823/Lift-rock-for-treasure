@@ -1,6 +1,7 @@
 import { useGameStore } from '../../store/useGameStore.js'
 import { ARMS, RARITY_COLORS, shortNum } from '../../data/arms.js'
-import { armAction } from '../../systems/arms.js'
+import { armAction, armPrice } from '../../systems/arms.js'
+import { arrowAt } from '../../data/tutorial.js'
 import { ArmIcon } from './icons.jsx'
 import { armTexture } from './armTextures.js'
 import './arms.css'
@@ -9,6 +10,9 @@ function Row({ arm }) {
   const owned = useGameStore((s) => s.ownedArms.includes(arm.id))
   const equipped = useGameStore((s) => s.equippedArm === arm.id)
   const cash = useGameStore((s) => s.cash)
+  const pointed = useGameStore((s) => arrowAt(s, `arm-${arm.id}`))
+  const price = useGameStore((s) => armPrice(arm, s))
+  const discounted = !owned && price != null && price < arm.price
   const state = equipped ? 'is-equipped' : owned ? 'is-owned' : 'is-locked'
   return (
     <div className={`arms-row ${state}`}>
@@ -24,11 +28,13 @@ function Row({ arm }) {
         </div>
       </div>
       <button
-        className={`arms-btn rbx ${!owned && (arm.price == null || cash < arm.price) ? 'is-poor' : ''}`}
-        disabled={equipped || (!owned && arm.price == null)}
+        className={`arms-btn rbx ${!owned && (price == null || cash < price) ? 'is-poor' : ''}`}
+        disabled={equipped || (!owned && price == null)}
         onClick={() => armAction(arm.id)}
       >
-        {equipped ? 'Equipped' : owned ? 'Equip' : arm.price == null ? 'N/A' : `$${shortNum(arm.price)}`}
+        {pointed && <span className="ui-arrow is-left" aria-hidden="true" />}
+        {discounted && <span className="arms-was rbx">${shortNum(arm.price)}</span>}
+        {equipped ? 'Equipped' : owned ? 'Equip' : price == null ? 'N/A' : `$${shortNum(price)}`}
       </button>
     </div>
   )
