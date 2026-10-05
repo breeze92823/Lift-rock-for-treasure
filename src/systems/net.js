@@ -27,10 +27,10 @@ const FIRST_LOAD_BACKOFF_MS = [2000, 4000, 8000, 12000, 15000, 15000] // then gi
 // Store keys the server persists (backend src/sanitize.ts).
 const SAVED = [
   'cash', 'gems', 'rebirths', 'strength', 'level', 'xp', 'xpNeeded', 'backpackLevel', 'speedLevel',
-  'inventory', 'ownedAuras', 'equippedAura', 'ownedArms', 'equippedArm', 'heldItem', 'plotSlots', 'discovered',
+  'inventory', 'ownedAuras', 'equippedAura', 'ownedArms', 'equippedArm', 'heldItem', 'plotSlots', 'baseUpgraded', 'discovered',
 ]
 // Subset other players can see; sent right away instead of waiting for the save debounce.
-const VISIBLE = ['equippedAura', 'equippedArm', 'level', 'rebirths', 'heldItem']
+const VISIBLE = ['equippedAura', 'equippedArm', 'level', 'rebirths', 'heldItem', 'baseUpgraded']
 
 const pick = (st, keys) => Object.fromEntries(keys.map((k) => [k, st[k]]))
 
@@ -77,6 +77,12 @@ function applyProgress(doc) {
   if (patch.backpackLevel) patch.backpackMax = UPGRADES.backpack.value(patch.backpackLevel)
   if (patch.speedLevel) player.moveSpeed = moveSpeedFor(patch.speedLevel)
   if (patch.plotSlots) patch.plotSlots = { ...patch.plotSlots }
+  // Backends that don't store baseUpgraded yet: keep the purchase in this browser.
+  const upKey = `lrft-base-upgraded:${currentUserId()}`
+  try {
+    if (patch.baseUpgraded) localStorage.setItem(upKey, '1')
+    else if (localStorage.getItem(upKey)) patch.baseUpgraded = true
+  } catch {}
   useGameStore.setState(patch)
 }
 
@@ -138,8 +144,8 @@ function syncRoster() {
     p.plotSlots?.forEach((it, key) => {
       slots[key] = { name: it.name, rarity: it.rarity, glyph: it.glyph }
     })
-    plots[p.homePlot] = { slots }
-    parts.push(`${sid}:${p.homePlot}:${p.avatar?.length ?? 0}:${Object.entries(slots).map(([k, v]) => k + v.name).join(',')}`)
+    plots[p.homePlot] = { slots, baseUpgraded: !!p.baseUpgraded }
+    parts.push(`${sid}:${p.homePlot}:${p.baseUpgraded ? 1 : 0}:${p.avatar?.length ?? 0}:${Object.entries(slots).map(([k, v]) => k + v.name).join(',')}`)
   })
   for (const sid of [...remotes.keys()]) if (!ids.includes(sid)) remotes.delete(sid)
   const sig = parts.join('|')
@@ -232,6 +238,11 @@ export function startNet() {
   }
   started = true
   useGameStore.subscribe(onStoreChange)
+  useGameStore.subscribe((st, prev) => {
+    if (st.baseUpgraded && !prev.baseUpgraded) {
+      try { localStorage.setItem(`lrft-base-upgraded:${currentUserId()}`, '1') } catch {}
+    }
+  })
   setInterval(sendMove, 1000 / MOVE_HZ)
   setInterval(syncRoster, 200)
   window.addEventListener('pagehide', saveNow)

@@ -14,6 +14,10 @@ import {
   BUTTON_CLICK_SYNTH_DECAY_S,
   BUTTON_CLICK_SYNTH_NOISE_GAIN,
   BUTTON_CLICK_SYNTH_NOISE_DECAY_S,
+  BUTTON_HOVER_GAIN,
+  BUTTON_HOVER_SYNTH_FREQ_HZ,
+  BUTTON_HOVER_SYNTH_ATTACK_S,
+  BUTTON_HOVER_SYNTH_DECAY_S,
   ACTION_FAIL_GAIN,
   ACTION_FAIL_SYNTH_NOTES_HZ,
   ACTION_FAIL_SYNTH_NOTE_GAP_S,
@@ -108,6 +112,12 @@ function clickBuffer(ctx) {
   })
 }
 
+function hoverBuffer(ctx) {
+  return render(ctx, 'hover', BUTTON_HOVER_SYNTH_ATTACK_S + BUTTON_HOVER_SYNTH_DECAY_S + 0.05, (o) =>
+    notes(o, 'sine', [BUTTON_HOVER_SYNTH_FREQ_HZ], 0, BUTTON_HOVER_SYNTH_ATTACK_S, BUTTON_HOVER_SYNTH_DECAY_S, 1),
+  )
+}
+
 function play(getBuffer, level) {
   const ctx = unlock()
   if (!ctx) return
@@ -126,6 +136,28 @@ function play(getBuffer, level) {
 export const playConfirmPop = () => play(confirmBuffer, CONFIRM_POP_GAIN)
 // Any HUD button press.
 export const playButtonClick = () => play(clickBuffer, BUTTON_CLICK_GAIN)
+// Pointer moves onto a HUD button.
+export const playButtonHover = () => play(hoverBuffer, BUTTON_HOVER_GAIN)
+
+// Click + hover sounds for every HUD button, via document-level delegation so
+// individual components don't need wiring. Hover is skipped for touch pointers.
+const BUTTON_SELECTOR = 'button, [role="button"]'
+const buttonOf = (e) => {
+  const el = e.target instanceof Element ? e.target.closest(BUTTON_SELECTOR) : null
+  return el && !el.disabled && el.getAttribute('aria-disabled') !== 'true' ? el : null
+}
+
+export function installButtonSounds() {
+  document.addEventListener('pointerdown', (e) => {
+    if (buttonOf(e)) playButtonClick()
+  })
+  document.addEventListener('pointerover', (e) => {
+    if (e.pointerType === 'touch') return
+    const el = buttonOf(e)
+    if (el && !(e.relatedTarget instanceof Node && el.contains(e.relatedTarget))) playButtonHover()
+  })
+}
+
 // A blocked action; showActionResult(.., false) plays it with the red popup.
 export const playActionFail = () => play(failBuffer, ACTION_FAIL_GAIN)
 

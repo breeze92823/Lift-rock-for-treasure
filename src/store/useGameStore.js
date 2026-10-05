@@ -12,6 +12,10 @@ const START_GEMS = Number.isFinite(envGems) && envGems > 0 ? Math.floor(envGems)
 const envStrength = Number(import.meta.env.VITE_START_STRENGTH)
 const START_STRENGTH = Number.isFinite(envStrength) && envStrength > 0 ? Math.floor(envStrength) : 1
 
+// Starting rebirth count, set via VITE_START_REBIRTHS (default 0).
+const envRebirths = Number(import.meta.env.VITE_START_REBIRTHS)
+const START_REBIRTHS = Number.isFinite(envRebirths) && envRebirths > 0 ? Math.floor(envRebirths) : 0
+
 export const useGameStore = create(() => ({
   progressLoaded: false, // saved progress received from the server (systems/net.js); gates the loading screen
   netWaking: false, // first join failed but is being retried automatically (cold-starting host); LoadingScreen says so
@@ -21,7 +25,7 @@ export const useGameStore = create(() => ({
   // HUD stats (components/hud/HUD.jsx).
   cash: START_CASH,
   gems: START_GEMS,
-  rebirths: 0,
+  rebirths: START_REBIRTHS,
   strength: START_STRENGTH,
   level: 1,
   xp: 1,
@@ -43,6 +47,8 @@ export const useGameStore = create(() => ({
   equippedArm: 'dirt',
   heldItem: null, // { name, rarity, glyph } picked from the Index (Uncommon and up; see IndexWindow.jsx)
   homePlot: 0, // index into data/world.js PLOTS, assigned by the server (systems/net.js)
+  homeStyleAll: false, // true: plots nobody owns are drawn as the home build; false: they keep the original flat look (components/world/Plots.jsx)
+  baseUpgraded: false, // own plot upgraded to the two-storey home build, 24 slots (systems/plotSlots.js; saved by systems/net.js)
   plotSlots: {}, // home ground-floor slot index (data/world.js HOME_SLOTS) -> { name, rarity, glyph } (systems/plotSlots.js)
   discovered: [], // item names collected at least once (systems/loot.js)
   collectedLoot: [], // indices into data/loot.js LOOT already picked up

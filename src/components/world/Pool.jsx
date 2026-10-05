@@ -4,6 +4,7 @@ import { MAT, plastic } from '../../materials/world.js'
 import { leaderboardTexture } from '../../utils/labels.js'
 import { useLeaderboardStore } from '../../store/useLeaderboardStore.js'
 import { formatCash, compactNumber, formatDuration } from '../../utils/format.js'
+import { getDisplayName } from '../../systems/bloxity.js'
 import { Block } from './parts.jsx'
 
 const FORMAT = { cash: formatCash, strength: compactNumber, playTime: formatDuration }
@@ -14,7 +15,9 @@ const BOARD_H = 6.5
 function Leaderboard({ title, stat, frame, icon, x, z, rot }) {
   const data = useLeaderboardStore((s) => s[stat])
   const rows = useMemo(() => {
-    const live = data.map((r) => ({ name: r.name, value: FORMAT[stat](r.value), mine: !!r.mine }))
+    const me = getDisplayName()
+    // Server may flag the row itself; otherwise match on the viewer's own display name.
+    const live = data.map((r) => ({ name: r.name, value: FORMAT[stat](r.value), mine: !!r.mine || (!!me && r.name === me) }))
     while (live.length < LEADERBOARD_ROWS) live.push({ name: '---', value: '-' }) // not enough players yet
     return live
   }, [data, stat])

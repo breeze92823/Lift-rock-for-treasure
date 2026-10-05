@@ -503,9 +503,10 @@ export function luckTextTexture(total) {
   return { map, aspect: W / H }
 }
 
-// Blue "Base Upgrade" signboard: house icon, upgrade cost and slots used/total.
-export function baseUpgradeSignTexture(used, total) {
-  return canvasTexture(`base-sign:${used}:${total}`, 1024, 480, (ctx, w, h) => {
+// Blue "Base Upgrade" signboard. state: 'locked' (needs a rebirth), 'ready' (shows the cash
+// cost) or 'upgraded'; the bottom line is always the placed/total slot count.
+export function baseUpgradeSignTexture(state, used, total) {
+  return canvasTexture(`base-sign:${state}:${used}:${total}`, 1024, 480, (ctx, w, h) => {
     roundRect(ctx, 0, 0, w, h, 50)
     ctx.fillStyle = '#2f4f78'
     ctx.fill()
@@ -513,32 +514,30 @@ export function baseUpgradeSignTexture(used, total) {
     ctx.fillStyle = vgrad(ctx, 14, h, '#7fa6d6', '#5c82b4')
     ctx.fill()
     strokeText(ctx, 'Base Upgrade', w / 2, 100, { size: 120, line: 20 })
-    // orange cost bar
+    // status bar: grey when locked, orange when buyable, green once upgraded
+    const [c0, c1, edge] = state === 'locked' ? ['#b8bcc6', '#7d828f', '#3b3f4a'] : state === 'upgraded' ? ['#8cff55', '#2bb40e', '#12520a'] : ['#ffc23a', '#ff7a00', '#7a3300']
     roundRect(ctx, 50, 190, w - 100, 190, 36)
-    ctx.fillStyle = vgrad(ctx, 190, 380, '#ffc23a', '#ff7a00')
+    ctx.fillStyle = vgrad(ctx, 190, 380, c0, c1)
     ctx.fill()
     ctx.lineWidth = 12
-    ctx.strokeStyle = '#7a3300'
+    ctx.strokeStyle = edge
     ctx.stroke()
+    if (state === 'locked') {
+      strokeText(ctx, 'To use base must', w / 2, 245, { size: 70, line: 14 })
+      strokeText(ctx, 'reach Rebirth 1', w / 2, 330, { size: 70, line: 14 })
+      return
+    }
     ctx.save()
     ctx.translate(70, 200)
     ctx.scale(0.55, 0.55)
     ctx.drawImage(homeIconTexture().image, 0, 0)
     ctx.restore()
-    strokeText(ctx, '2', 330, 270, { size: 90, line: 16 })
-    ctx.fillStyle = '#ff2b4a'
-    ctx.strokeStyle = '#5a0010'
-    ctx.lineWidth = 8
-    ctx.beginPath()
-    ctx.moveTo(430, 235)
-    ctx.lineTo(470, 235)
-    ctx.lineTo(490, 262)
-    ctx.lineTo(450, 305)
-    ctx.lineTo(410, 262)
-    ctx.closePath()
-    ctx.fill()
-    ctx.stroke()
-    strokeText(ctx, '$5K', w - 80, 270, { size: 100, line: 18, align: 'right' })
-    strokeText(ctx, `Slots ${used}/${total}`, w / 2 + 40, 345, { size: 56, fill: '#34c3ff', stroke: '#06304a', line: 10 })
+    if (state === 'upgraded') {
+      strokeText(ctx, 'Upgraded', w / 2 + 90, 240, { size: 96, line: 16 })
+      strokeText(ctx, `Slots ${used}/${total}`, w / 2 + 90, 335, { size: 64, fill: '#ffffff', stroke: '#12520a', line: 12 })
+      return
+    }
+    strokeText(ctx, 'Cost 5000 Cash', w / 2 + 90, 240, { size: 80, line: 14 })
+    strokeText(ctx, `Slots ${used}/${total}`, w / 2 + 90, 335, { size: 64, fill: '#ffffff', stroke: '#7a3300', line: 12 })
   })
 }

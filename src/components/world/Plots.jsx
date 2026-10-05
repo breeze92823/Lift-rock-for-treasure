@@ -2,17 +2,17 @@ import { useMemo, useRef } from 'react'
 import { AdditiveBlending, DoubleSide } from 'three'
 import { canvasTexture } from '../../utils/textures.js'
 import { useFrame } from '@react-three/fiber'
-import { PLOT, PLOTS, PLOT_SLOT, PLOT_ROW_Z, HOME_SLOTS, plotSlotsAt, plotSlotXs as slotXs } from '../../data/world.js'
+import { BASE_UPGRADE, PLOT, PLOTS, PLOT_SLOT, PLOT_ROW_Z, UPPER_Y, isUpperSlot, ladderAt, plotSlotsAt, plotSlotXs as slotXs } from '../../data/world.js'
 import { MAT, plastic } from '../../materials/world.js'
 import { homeIconTexture, luckTextTexture, baseUpgradeSignTexture } from '../../utils/labels.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { useRemoteStore } from '../../store/useRemoteStore.js'
+import { plotStyled } from '../../systems/plotStyle.js'
 import { Block, Label } from './parts.jsx'
 import { MODELS, GenericItem, RARITY, RARITY_FALLBACK } from './LootItems.jsx'
 import { ITEM_LUCK, luckBonus } from '../../data/loot.js'
 
 const SLOT = PLOT_SLOT.size
-const UPPER_Y = 6
 const CARPET_D = 5
 const PEDESTAL_H = 0.65 // raised treasure slots on the home plot's ground floor
 
@@ -73,14 +73,15 @@ function Floating({ i, children }) {
 }
 
 // Items the player has placed on the home plot's ground-floor slots.
-function PlacedItems({ plot, placed }) {
+function PlacedItems({ plot, placed, raised }) {
   const slots = useMemo(() => plotSlotsAt(plot), [plot])
   return Object.entries(placed).map(([i, it]) => {
     const Model = MODELS[it.name] || GenericItem
-    const { x, z } = slots[i]
+    const upper = isUpperSlot(+i)
+    const { x, z } = slots[upper ? i - slots.length : i]
     const { fill } = RARITY[it.rarity] || RARITY_FALLBACK
     return (
-      <group key={i} position={[x, PLOT.h + PEDESTAL_H, z]}>
+      <group key={i} position={[x, upper ? UPPER_Y + PLOT.h + 0.45 : PLOT.h + (raised ? PEDESTAL_H : 0.45), z]}>
         <Floating i={+i}>
           <Model />
         </Floating>
@@ -165,25 +166,31 @@ function GroundHall({ cx, z, side, lights = true }) {
 
 // Total luck of everything placed on the home slots, and the signs at the
 // carpet entrance: "Base Upgrade" board and the "Luck: +N%" readout.
-function HomeSigns({ cx, z, side, placed }) {
+function HomeSigns({ cx, z, side, placed, mine }) {
   const items = Object.values(placed)
   const luck = luckBonus(placed)
+  const rebirths = useGameStore((s) => s.rebirths)
+  const upgraded = useGameStore((s) => s.baseUpgraded)
   const { map: luckMap, aspect } = useMemo(() => luckTextTexture(luck), [luck])
-  const signMap = useMemo(() => baseUpgradeSignTexture(items.length, HOME_SLOTS.length), [items.length])
+  const state = rebirths < BASE_UPGRADE.minRebirths ? 'locked' : upgraded ? 'upgraded' : 'ready'
+  const total = upgraded ? BASE_UPGRADE.upgradedSlots : BASE_UPGRADE.slots
+  const signMap = useMemo(() => baseUpgradeSignTexture(state, items.length, total), [state, items.length, total])
   const x = cx - side * (PLOT.width / 2 - 1.2) // just inside the plot, at the carpet entrance
   const facing = side < 0 ? Math.PI / 2 : -Math.PI / 2
   return (
     <group>
-      <group position={[x, PLOT.h, z - 5.5]} rotation-y={facing}>
-        <Block x={0} w={0.4} h={1.6} d={0.4} mat={plastic('#3b5f8c')} />
-        <mesh position={[0, 2.5, 0]} material={plastic('#2f4f78')} castShadow>
-          <boxGeometry args={[4.2, 2.1, 0.25]} />
-        </mesh>
-        <mesh position={[0, 2.5, 0.14]}>
-          <planeGeometry args={[4, 1.875]} />
-          <meshBasicMaterial map={signMap} transparent toneMapped={false} />
-        </mesh>
-      </group>
+      {mine && (
+        <group position={[x, PLOT.h, z - 5.5]} rotation-y={facing}>
+          <Block x={0} w={0.4} h={1.6} d={0.4} mat={plastic('#3b5f8c')} />
+          <mesh position={[0, 2.5, 0]} material={plastic('#2f4f78')} castShadow>
+            <boxGeometry args={[4.2, 2.1, 0.25]} />
+          </mesh>
+          <mesh position={[0, 2.5, 0.14]}>
+            <planeGeometry args={[4, 1.875]} />
+            <meshBasicMaterial map={signMap} transparent toneMapped={false} />
+          </mesh>
+        </group>
+      )}
       <sprite position={[x, PLOT.h + 1.8, z + 5.5]} scale={[1.5 * aspect, 1.5, 1]} renderOrder={2}>
         <spriteMaterial map={luckMap} transparent depthWrite={false} toneMapped={false} />
       </sprite>
@@ -193,10 +200,10 @@ function HomeSigns({ cx, z, side, placed }) {
 
 // The player's own plot gets a second storey on posts, a ladder, a railing
 // (ground-floor slots are left empty for now).
-function UpperStorey({ cx, z, side }) {
+function UpperStorey({ plot, cx, z, side }) {
+  const ladder = ladderAt(plot)
   const w = PLOT.width
   const d = PLOT.depth
-  const icon = useMemo(() => homeIconTexture(), [])
   const posts = [-w / 2 + 0.45, w / 2 - 0.45]
   const outerX = cx + side * (w / 2)
   return (
@@ -214,11 +221,19 @@ function UpperStorey({ cx, z, side }) {
       {[-1, 1].map((s) =>
         posts.map((px) => <Block key={`rp${s}${px}`} x={cx + px} z={z + s * (d / 2 - 0.1)} y={UPPER_Y + PLOT.h} w={0.15} h={1.1} d={0.15} mat={MAT.post} shadow={false} />),
       )}
-      <Ladder x={outerX + side * 0.2} z={z + d / 2 - 3.5} h={UPPER_Y + 1.2} rot={Math.PI / 2} />
-      <sprite position={[cx - side * (w / 2 - 1), UPPER_Y + 3.4, z]} scale={[2.4, 2.4, 1]}>
-        <spriteMaterial map={icon} transparent depthWrite={false} toneMapped={false} />
-      </sprite>
+      {/* climbable ladder on the path-side front (systems/playerMovement.js) */}
+      <Ladder x={ladder.x} z={ladder.z} h={UPPER_Y + 1.2} rot={Math.PI / 2} />
     </group>
+  )
+}
+
+// The "home" marker floating above the player's own plot, in either plot style.
+function HomeIcon({ cx, z, side }) {
+  const icon = useMemo(() => homeIconTexture(), [])
+  return (
+    <sprite position={[cx - side * (PLOT.width / 2 - 1), UPPER_Y + 3.4, z]} scale={[2.4, 2.4, 1]}>
+      <spriteMaterial map={icon} transparent depthWrite={false} toneMapped={false} />
+    </sprite>
   )
 }
 
@@ -227,20 +242,25 @@ export default function Plots() {
   const homePlot = useGameStore((s) => s.homePlot)
   const homeSlots = useGameStore((s) => s.plotSlots)
   const remotePlots = useRemoteStore((s) => s.plots)
+  const homeStyleAll = useGameStore((s) => s.homeStyleAll)
+  const baseUpgraded = useGameStore((s) => s.baseUpgraded)
+  const game = { homePlot, homeStyleAll, baseUpgraded }
   return PLOTS.map((p, i) => {
     const remote = i !== homePlot ? remotePlots[i] : null
     const owned = i === homePlot || !!remote
     const placed = i === homePlot ? homeSlots : remote?.slots
+    const styled = plotStyled(i, game, remotePlots) // home build: second storey, hall, pedestals (only once that player has upgraded)
     const cx = p.side * (PLOT.inner + PLOT.width / 2)
     return (
       <group key={i}>
         <Block x={cx} z={p.z} w={PLOT.width} h={PLOT.h} d={PLOT.depth} mat={MAT.plot} />
-        <Deck cx={cx} z={p.z} y={0} pedestals={owned} />
-        {owned && <UpperStorey cx={cx} z={p.z} side={p.side} />}
-        {owned && <PlacedItems plot={i} placed={placed} />}
+        <Deck cx={cx} z={p.z} y={0} pedestals={styled} />
+        {styled && <UpperStorey plot={i} cx={cx} z={p.z} side={p.side} />}
+        {i === homePlot && <HomeIcon cx={cx} z={p.z} side={p.side} />}
+        {owned && <PlacedItems plot={i} placed={placed} raised={styled} />}
         {/* point lights only on our own hall: more lights per scene means costlier shaders */}
-        {owned && <GroundHall cx={cx} z={p.z} side={p.side} lights={i === homePlot} />}
-        {owned && <HomeSigns cx={cx} z={p.z} side={p.side} placed={placed} />}
+        {styled && <GroundHall cx={cx} z={p.z} side={p.side} lights={i === homePlot} />}
+        {owned && <HomeSigns cx={cx} z={p.z} side={p.side} placed={placed} mine={i === homePlot} />}
       </group>
     )
   })

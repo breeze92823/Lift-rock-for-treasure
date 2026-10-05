@@ -1,11 +1,13 @@
 import { padUnlocked } from './rebirth.js'
+import { plotStyled } from './plotStyle.js'
 import { showActionResult } from './actionResult.js'
 import { inputState } from './input.js'
 import { player, resetPlayer } from './playerState.js'
 import { getYaw, syncYawToPlayer } from './cameraOrbit.js'
 import { terrainHeightAt } from './terrainHeight.js'
 import { stepLift } from './liftGate.js'
-import { LIFT_DRAINS, PLAYER_MOVE_SPEED, SPAWN, SPAWN_FACING, TRAINING, TRAINING_SPOTS, WORLD_BOUNDS } from '../data/world.js'
+import { useGameStore } from '../store/useGameStore.js'
+import { LADDERS, LIFT_DRAINS, PLAYER_MOVE_SPEED, SPAWN, SPAWN_FACING, TRAINING, TRAINING_SPOTS, WORLD_BOUNDS } from '../data/world.js'
 
 // Kinematic capsule, stepped once per frame: apply input -> gravity ->
 // integrate -> keep on the ground slab -> clamp to the ground height under
@@ -33,6 +35,69 @@ function approach2D(v, targetX, targetZ, maxDelta) {
 
 let lockedPad = null // locked training pad the player is standing on (message shows once per entry)
 
+// Ladder climbing: walk into a plot's front ladder (from the path, or from the deck edge to go
+// down) to grab it; forward/back moves up/down, jump lets go.
+const CLIMB_SPEED = 3.5 // m/s
+const GRAB_REACH = 1.1 // m in front of the ladder, along the player's approach
+const GRAB_HALF_W = 0.8 // m either side of the ladder's centre line
+let climbing = null // the LADDERS entry being climbed
+
+const ladderIsLive = (i) => plotStyled(i)
+
+function findLadderToGrab(p, wishX) {
+  for (let i = 0; i < LADDERS.length; i++) {
+    const l = LADDERS[i]
+    if (!ladderIsLive(i) || Math.abs(p.z - l.z) > GRAB_HALF_W) continue
+    const inward = (p.x - l.x) * l.side // > 0: further into the plot than the ladder
+    if (p.y < 1 && inward < 0 && inward > -GRAB_REACH && wishX * l.side > 0.3) return l // from the path, going up
+    if (p.y > l.top - 0.5 && inward > 0 && inward < GRAB_REACH + 0.5 && wishX * l.side < -0.3) return l // from the deck, going down
+  }
+  return null
+}
+
+// Returns true while the player is on the ladder (the caller skips normal movement).
+function stepClimb(dt, p, wishX) {
+  if (!climbing) {
+    if (!player.grounded && p.y < 1) return false
+    const l = findLadderToGrab(p, wishX)
+    if (!l) return false
+    climbing = l
+    p.x = l.x - l.side * 0.45 // on the path side of the rungs
+    if (p.y > l.top - 0.5) p.y = l.top - 0.2 // going down: swing over the edge
+    player.velocity.x = player.velocity.z = player.velocity.y = 0
+  }
+  const l = climbing
+  if (Math.abs(p.x - (l.x - l.side * 0.45)) > 0.5 || Math.abs(p.z - l.z) > GRAB_HALF_W + 0.5) { // teleported away (Spawn / Home)
+    climbing = null
+    return false
+  }
+  if (inputState.jump) { // let go: hop back toward the path
+    inputState.jump = false
+    climbing = null
+    p.x = l.x - l.side * 0.6
+    player.velocity.y = 3
+    return false
+  }
+  // Heading toward the plot (the ladder, from the path) climbs, heading away descends. Judged
+  // from the actual wish direction so it works whichever way the camera faces.
+  const toward = wishX * l.side
+  const dir = toward > 0.2 ? 1 : toward < -0.2 ? -1 : 0
+  p.y += dir * CLIMB_SPEED * dt
+  player.velocity.x = player.velocity.z = player.velocity.y = 0
+  player.grounded = false
+  if (p.y >= l.top) { // over the top: step onto the deck
+    p.y = l.top
+    p.x = l.edgeX + l.side * 0.8
+    climbing = null
+    player.grounded = true
+  } else if (dir < 0 && p.y <= terrainHeightAt(p.x, p.z)) { // back at the bottom
+    p.y = terrainHeightAt(p.x, p.z)
+    climbing = null
+    player.grounded = true
+  }
+  return true
+}
+
 export function step(dt) {
   if (dt <= 0) return
 
@@ -49,6 +114,11 @@ export function step(dt) {
   const scale = len > 1 ? 1 / len : 1
   const wishX = (fwdX * mv.z + rightX * mv.x) * scale
   const wishZ = (fwdZ * mv.z + rightZ * mv.x) * scale
+
+  if (!(player.lifting != null || player.training != null) && stepClimb(dt, player.position, wishX)) {
+    stepLift(dt)
+    return
+  }
 
   approach2D(player.velocity, wishX * player.moveSpeed, wishZ * player.moveSpeed, ACCEL * dt)
 
@@ -74,11 +144,11 @@ export function step(dt) {
 
   // Too tall a ledge to step onto: stay put unless the player jumps high enough.
   // Try each axis on its own first so the player slides along walls.
-  if (terrainHeightAt(p.x, p.z) > p.y + MAX_STEP) {
-    if (terrainHeightAt(p.x, prevZ) <= p.y + MAX_STEP) {
+  if (terrainHeightAt(p.x, p.z, p.y) > p.y + MAX_STEP) {
+    if (terrainHeightAt(p.x, prevZ, p.y) <= p.y + MAX_STEP) {
       p.z = prevZ
       player.velocity.z = 0
-    } else if (terrainHeightAt(prevX, p.z) <= p.y + MAX_STEP) {
+    } else if (terrainHeightAt(prevX, p.z, p.y) <= p.y + MAX_STEP) {
       p.x = prevX
       player.velocity.x = 0
     } else {
@@ -87,7 +157,7 @@ export function step(dt) {
     }
   }
 
-  const groundY = terrainHeightAt(p.x, p.z)
+  const groundY = terrainHeightAt(p.x, p.z, p.y)
   if (p.y <= groundY) {
     p.y = groundY
     if (player.velocity.y < 0) player.velocity.y = 0

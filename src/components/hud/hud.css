@@ -59,6 +59,11 @@
   background: linear-gradient(#df6bff, #a12ef0 55%, #7d15d6);
   border-color: #46106e !important;
 }
+.hud .hud-travel-btn.is-style {
+  background: linear-gradient(#5fc8ff, #1f8fe0 55%, #1473bd);
+  border-color: #0b4478 !important;
+  font-size: 0.5rem !important;
+}
 .hud .hud-travel-btn.is-home {
   background: linear-gradient(#8cff55, #3fd41a 55%, #2bb40e);
   border-color: #1b6a08 !important;

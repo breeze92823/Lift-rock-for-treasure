@@ -14,7 +14,7 @@ export function safeDistance(target, dirX, dirY, dirZ, wanted) {
     const y = target.y + dirY * dist
     const x = target.x + dirX * dist
     const z = target.z + dirZ * dist
-    if (y < terrainHeightAt(x, z) + FLOOR_MARGIN) return Math.max(last, MIN_DISTANCE)
+    if (y < terrainHeightAt(x, z, y) + FLOOR_MARGIN) return Math.max(last, MIN_DISTANCE)
     last = dist
   }
   return wanted

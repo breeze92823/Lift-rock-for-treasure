@@ -13,6 +13,7 @@ export const DEFAULT_RANGE = 3
 export const CONFIRM_POP_GAIN = 0.135 // the "hold completed" pop
 export const BUTTON_CLICK_GAIN = 0.075
 export const ACTION_FAIL_GAIN = 0.14
+export const BUTTON_HOVER_GAIN = 0.04
 
 // Synthesized UI sounds, rendered once via OfflineAudioContext (no asset files).
 // Confirm pop: a quick rising two-note blip (pitched high so it cuts through).
@@ -27,6 +28,11 @@ export const BUTTON_CLICK_SYNTH_ATTACK_S = 0.002
 export const BUTTON_CLICK_SYNTH_DECAY_S = 0.045
 export const BUTTON_CLICK_SYNTH_NOISE_GAIN = 0.22
 export const BUTTON_CLICK_SYNTH_NOISE_DECAY_S = 0.02
+
+// Button hover: a very short, soft, higher sine tick.
+export const BUTTON_HOVER_SYNTH_FREQ_HZ = 1700
+export const BUTTON_HOVER_SYNTH_ATTACK_S = 0.002
+export const BUTTON_HOVER_SYNTH_DECAY_S = 0.03
 
 // Action failed: two short descending square-wave notes (A3 -> E3).
 export const ACTION_FAIL_SYNTH_NOTES_HZ = [220, 164.81]

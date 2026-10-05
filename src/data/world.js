@@ -207,6 +207,12 @@ export const plotSlotsAt = (i) =>
     plotSlotXs(PLOTS[i].side * (PLOT.inner + PLOT.width / 2)).map((x) => ({ x, z: PLOTS[i].z + s * PLOT_ROW_Z })),
   )
 
+// Base Upgrade (board at the carpet entrance, systems/plotSlots.js): needs a rebirth, costs cash, and
+// turns the player's own plot into the two-storey home build. Slots 0-11 are the ground floor, 12-23
+// the upper deck (same x/z as the ground ones).
+export const BASE_UPGRADE = { minRebirths: 1, cost: 5000, slots: 12, upgradedSlots: 24 }
+export const isUpperSlot = (i) => i >= PLOT_SLOT.count * 2
+
 // Solid parts of the home plot's ground-floor hall (components/world/Plots.jsx):
 // treasure pedestals, orange pillars, corner posts and the back wall. Taller than
 // the step height so the player can't climb onto them.
@@ -223,6 +229,29 @@ export const hallBlocksFor = (i) => {
     { x: cx + pl.side * (PLOT.width / 2 - 0.15), z: pl.z, w: 0.3, d: PLOT.depth, h: HALL_H },
   ]
 }
+
+// Second storey (components/world/Plots.jsx UpperStorey): the deck is walkable only for a player
+// already up there (collider.min), and is reached by a ladder on the path-side front of the plot.
+export const UPPER_Y = 6
+export const DECK_TOP = UPPER_Y + PLOT.h
+export const LADDER_Z_OFF = PLOT.depth / 2 - 3.5 // along the plot's front edge, from its centre line
+export const ladderAt = (i) => {
+  const pl = PLOTS[i]
+  const edgeX = pl.side * PLOT.inner // plot edge facing the path
+  return { x: edgeX - pl.side * 0.35, z: pl.z + LADDER_Z_OFF, side: pl.side, edgeX, top: DECK_TOP }
+}
+export const LADDERS = PLOTS.map((_, i) => ladderAt(i))
+export const LADDER_H = UPPER_Y + 1.2 // matches the Ladder mesh in Plots.jsx
+export const LADDER_COLLIDERS = LADDERS.map((l) => ({
+  x0: l.x - 0.15, x1: l.x + 0.15, z0: l.z - 0.55, z1: l.z + 0.55, top: GROUND_Y + LADDER_H,
+}))
+export const DECK_COLLIDERS = PLOTS.map((p) => {
+  const cx = p.side * (PLOT.inner + PLOT.width / 2)
+  return {
+    x0: cx - PLOT.width / 2, x1: cx + PLOT.width / 2, z0: p.z - PLOT.depth / 2, z1: p.z + PLOT.depth / 2,
+    top: DECK_TOP, min: UPPER_Y - 0.5,
+  }
+})
 
 export const WORLD_BOUNDS = { minX: ARENA.minX, maxX: ARENA.maxX, minZ: LIFT_END, maxZ: ARENA.maxZ }
 
@@ -297,4 +326,20 @@ const toCollider = (b) => ({
   x0: b.x - b.w / 2, x1: b.x + b.w / 2, z0: b.z - b.d / 2, z1: b.z + b.d / 2, top: GROUND_Y + b.h, gate: b.gate, // gate: luck of a Lift gate, which stops colliding once lifted
 })
 export const COLLIDERS = BLOCKS.map(toCollider)
-export const HALL_COLLIDERS = PLOTS.map((_, i) => hallBlocksFor(i).map(toCollider)) // solid only for the player's own plot
+// Solid things on the second-storey deck (railings on three sides, the front stays open at the
+// ladder, and the treasure slots). Like the deck, they only count for a body already up there.
+const UPPER_RAIL_H = 2.2 // taller than the railing looks so a jump can not clear it
+const UPPER_SLOT_H = 0.8 // above the step height, so they can't be walked over
+export const UPPER_COLLIDERS = PLOTS.map((p, i) => {
+  const cx = p.side * (PLOT.inner + PLOT.width / 2)
+  const outerX = cx + p.side * (PLOT.width / 2)
+  const rail = (b, h) => ({ ...toCollider({ ...b, h: 0 }), top: DECK_TOP + h, min: DECK_COLLIDERS[i].min })
+  return [
+    ...[-1, 1].map((s) => rail({ x: cx, z: p.z + s * (PLOT.depth / 2 - 0.1), w: PLOT.width, d: 0.3 }, UPPER_RAIL_H)),
+    rail({ x: outerX - p.side * 0.1, z: p.z, w: 0.3, d: PLOT.depth }, UPPER_RAIL_H),
+    ...[-1, 1].flatMap((s) =>
+      plotSlotXs(cx).map((x) => rail({ x, z: p.z + s * PLOT_ROW_Z, w: PLOT_SLOT.size, d: PLOT_SLOT.size }, UPPER_SLOT_H)),
+    ),
+  ]
+})
+export const HALL_COLLIDERS = PLOTS.map((_, i) => hallBlocksFor(i).map(toCollider)) // all plots while store.homeStyleAll, else only the player's own (systems/terrainHeight.js)
