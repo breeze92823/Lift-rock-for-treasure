@@ -1,19 +1,23 @@
 import { create } from 'zustand'
 
+// The VITE_START_* overrides are test-only: ignored in production builds (main).
+const ALLOW_START_OVERRIDES = import.meta.env.MODE !== 'production'
+const envNum = (v) => (ALLOW_START_OVERRIDES && v ? Number(v) : NaN)
+
 // Starting cash, set via VITE_START_CASH in .env / .env.local (see .env.example).
-const envCash = Number(import.meta.env.VITE_START_CASH)
+const envCash = envNum(import.meta.env.VITE_START_CASH)
 const START_CASH = Number.isFinite(envCash) && envCash > 0 ? Math.floor(envCash) : 0
 
 // Starting gems, set via VITE_START_GEMS (handy for testing gem purchases).
-const envGems = Number(import.meta.env.VITE_START_GEMS)
+const envGems = envNum(import.meta.env.VITE_START_GEMS)
 const START_GEMS = Number.isFinite(envGems) && envGems > 0 ? Math.floor(envGems) : 0
 
 // Starting strength, set via VITE_START_STRENGTH (default 1).
-const envStrength = Number(import.meta.env.VITE_START_STRENGTH)
+const envStrength = envNum(import.meta.env.VITE_START_STRENGTH)
 const START_STRENGTH = Number.isFinite(envStrength) && envStrength > 0 ? Math.floor(envStrength) : 1
 
 // Starting rebirth count, set via VITE_START_REBIRTHS (default 0).
-const envRebirths = Number(import.meta.env.VITE_START_REBIRTHS)
+const envRebirths = envNum(import.meta.env.VITE_START_REBIRTHS)
 const START_REBIRTHS = Number.isFinite(envRebirths) && envRebirths > 0 ? Math.floor(envRebirths) : 0
 
 export const useGameStore = create(() => ({

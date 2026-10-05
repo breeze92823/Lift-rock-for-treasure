@@ -60,6 +60,10 @@ jobs:
         env:
           VITE_SERVER_URL_DEV: ${{ vars.SERVER_URL_DEV || secrets.SERVER_URL_DEV }}
           VITE_SERVER_URL_MAIN: ${{ vars.SERVER_URL_MAIN || secrets.SERVER_URL_MAIN }}
+          # Test starting stats: only injected on the dev branch, always empty on main.
+          VITE_START_CASH: ${{ github.ref_name != 'main' && vars.START_CASH || '' }}
+          VITE_START_STRENGTH: ${{ github.ref_name != 'main' && vars.START_STRENGTH || '' }}
+          VITE_START_REBIRTHS: ${{ github.ref_name != 'main' && vars.START_REBIRTHS || '' }}
         run: |
           if [ "${{ steps.channel.outputs.channel }}" = "prod" ]; then
             npm run build
