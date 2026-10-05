@@ -21,6 +21,8 @@ const SERVER_URL = import.meta.env.MODE === 'production' ? SERVER_URL_MAIN : SER
 const MOVE_HZ = 15
 const SAVE_DEBOUNCE_MS = 1000
 const RETRY_MS = 3000
+const JOIN_TIMEOUT_MS = 45000 // one attempt; covers a scaled-to-zero host booting
+const FIRST_LOAD_BACKOFF_MS = [2000, 4000, 8000, 12000, 15000, 15000] // then give up and show "Try again"
 
 // Store keys the server persists (backend src/sanitize.ts).
 const SAVED = [
@@ -41,6 +43,7 @@ let saveTimer = 0
 let started = false
 let everLoaded = false // progress received at least once; later drops reconnect silently
 let connecting = false
+let attempt = 0 // consecutive failed joins before the first successful load
 let joinedAs = '' // user id the current connection was opened (or last identified) with
 
 // Dev builds and guests have no Bloxity id; a per-browser id keeps their progress too.
@@ -150,7 +153,15 @@ async function connect() {
   connecting = true
   try {
     const client = new Client(SERVER_URL)
-    const r = await client.joinOrCreate('world', { userId: currentUserId(), username: getDisplayName(), avatar: avatarJson() })
+    let timer
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Server did not respond in time.')), JOIN_TIMEOUT_MS)
+    })
+    const r = await Promise.race([
+      client.joinOrCreate('world', { userId: currentUserId(), username: getDisplayName(), avatar: avatarJson() }),
+      timeout,
+    ]).finally(() => clearTimeout(timer))
+    attempt = 0
     room = r
     joinedAs = currentUserId()
     lastSaved = lastVisible = lastMove = ''
@@ -168,12 +179,12 @@ async function connect() {
       everLoaded = true
       lastSaved = reconnect ? '' : JSON.stringify(pick(useGameStore.getState(), SAVED))
       lastVisible = ''
-      useGameStore.setState({ progressLoaded: true, netError: '' })
+      useGameStore.setState({ progressLoaded: true, netError: '', netWaking: false })
       if (reconnect) saveNow()
       onStoreChange(useGameStore.getState())
     })
     r.onMessage('noProgress', ({ homePlot = 0 } = {}) => {
-      useGameStore.setState({ homePlot, progressLoaded: true, netError: '' })
+      useGameStore.setState({ homePlot, progressLoaded: true, netError: '', netWaking: false })
       hydrated = true
       everLoaded = true
       lastSaved = '' // brand-new account: store the current (default) state right away
@@ -191,7 +202,11 @@ async function connect() {
   } catch (err) {
     console.warn('[net] could not join the server', err?.message || err)
     if (everLoaded) setTimeout(connect, RETRY_MS * 2)
-    else fail(err?.message || 'Could not reach the server.')
+    else if (attempt < FIRST_LOAD_BACKOFF_MS.length) {
+      // Host may be waking from scale-to-zero (503 / CORS failure): keep trying quietly.
+      useGameStore.setState({ netWaking: true })
+      setTimeout(connect, FIRST_LOAD_BACKOFF_MS[attempt++])
+    } else fail(err?.message || 'Could not reach the server.')
   } finally {
     connecting = false
   }
@@ -199,11 +214,12 @@ async function connect() {
 
 // First load failed: stop retrying on our own and let the loading screen offer a "Try again" button.
 function fail(message) {
-  useGameStore.setState({ netError: message })
+  useGameStore.setState({ netError: message, netWaking: false })
 }
 
 export function retryNet() {
   if (connecting) return
+  attempt = 0
   useGameStore.setState({ netError: '' })
   connect()
 }

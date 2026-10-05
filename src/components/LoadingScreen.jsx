@@ -14,6 +14,7 @@ export default function LoadingScreen({ sceneReady }) {
   const avatarLoaded = useGameStore((s) => s.avatarLoaded)
   const progressLoaded = useGameStore((s) => s.progressLoaded)
   const netError = useGameStore((s) => s.netError)
+  const netWaking = useGameStore((s) => s.netWaking)
 
   useEffect(() => subscribeAuth((s) => setAuthReady(s.ready)), [])
 
@@ -41,7 +42,7 @@ export default function LoadingScreen({ sceneReady }) {
       ) : (
         <>
           <div className="loading-track"><div className="loading-fill" /></div>
-          <p>{!sceneReady ? 'Building the world…' : !authReady ? 'Signing in…' : !progressLoaded && !DEV_MODE ? 'Loading your progress…' : 'Getting ready…'}</p>
+          <p>{!sceneReady ? 'Building the world…' : !authReady ? 'Signing in…' : !progressLoaded && !DEV_MODE ? (netWaking ? 'Waking up the server, this can take a moment…' : 'Loading your progress…') : 'Getting ready…'}</p>
         </>
       )}
     </div>

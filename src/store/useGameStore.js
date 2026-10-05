@@ -14,6 +14,7 @@ const START_STRENGTH = Number.isFinite(envStrength) && envStrength > 0 ? Math.fl
 
 export const useGameStore = create(() => ({
   progressLoaded: false, // saved progress received from the server (systems/net.js); gates the loading screen
+  netWaking: false, // first join failed but is being retried automatically (cold-starting host); LoadingScreen says so
   netError: '', // set when the server/database could not be reached on first load; LoadingScreen shows a retry button
   avatarLoaded: false, // player character (incl. Bloxity accessories) finished loading; gates the loading screen
 
