@@ -1,0 +1,32 @@
+import { PLAYER_MOVE_SPEED } from '../data/world.js'
+
+// The player singleton. Mutated in place, never reallocated, so the frame
+// loop can read it without a React subscription.
+export const player = {
+  // Capsule base (feet) in world space, +Y up.
+  position: { x: 0, y: 0, z: 0 },
+  velocity: { x: 0, y: 0, z: 0 },
+  grounded: true,
+  bending: false, // drives the bent-over pose in avatarAnim; unused for now
+  lifting: null, // 0..1 progress while heaving a Lift gate, else null (drives the lift pose)
+  training: null, // the TRAINING_SPOTS entry the player stands on, else null
+  facing: Math.PI, // yaw the character model faces, radians
+  moveSpeed: PLAYER_MOVE_SPEED,
+  dims: { radius: 0.4, height: 1.8 },
+}
+
+export function resetPlayer(spawn = { x: 0, y: 0, z: 0 }, facing = Math.PI) {
+  player.position.x = spawn.x
+  player.position.y = spawn.y
+  player.position.z = spawn.z
+  player.velocity.x = 0
+  player.velocity.y = 0
+  player.velocity.z = 0
+  player.grounded = true
+  player.lifting = null
+  player.facing = facing
+}
+
+// Where the player's chest is on screen, 0..1 from the top-left; written each frame
+// by components/GameLoop.jsx for HUD effects that appear around the player.
+export const playerScreen = { x: 0.5, y: 0.5 }

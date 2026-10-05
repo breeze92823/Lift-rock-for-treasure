@@ -1,0 +1,63 @@
+/* --- Arms window (ArmsWindow.jsx) ----------------------------------------- */
+.arms-window {
+  --u: 1rem; /* shrinks to fit narrow / portrait screens, see the media query below */
+  position: absolute; inset: 0; pointer-events: auto;
+  background: rgba(10, 20, 40, 0.35); backdrop-filter: blur(calc(var(--u) * 0.12)); -webkit-backdrop-filter: blur(calc(var(--u) * 0.12));
+}
+.arms-panel {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -48%);
+  width: calc(var(--u) * 7.7); height: calc(var(--u) * 4.9); box-sizing: border-box; padding: calc(var(--u) * 0.3) calc(var(--u) * 0.15) calc(var(--u) * 0.15);
+  background: linear-gradient(#2a2d4a, #181a30); border: calc(var(--u) * 0.05) solid #ff9a1a; border-radius: calc(var(--u) * 0.2);
+  box-shadow: 0 0 0 calc(var(--u) * 0.04) #1a1006, 0 calc(var(--u) * 0.1) calc(var(--u) * 0.4) rgba(0, 0, 0, 0.4);
+}
+.arms-title {
+  position: absolute; left: calc(var(--u) * -0.1); top: calc(var(--u) * -0.45); padding: calc(var(--u) * 0.06) calc(var(--u) * 0.3) calc(var(--u) * 0.06) calc(var(--u) * 1); font-size: calc(var(--u) * 0.5);
+  background: linear-gradient(#ffc030, #f08a10); border: calc(var(--u) * 0.04) solid #3a1c04; border-radius: calc(var(--u) * 0.1);
+}
+.arms-title-icon { position: absolute; left: calc(var(--u) * 0.05); top: calc(var(--u) * -0.2); width: calc(var(--u) * 0.8); height: calc(var(--u) * 0.8); }
+.hud .arms-close {
+  position: absolute; right: calc(var(--u) * -0.2); top: calc(var(--u) * -0.45); width: calc(var(--u) * 0.85); height: calc(var(--u) * 0.85);
+  font-size: calc(var(--u) * 0.6); background: #e8164d; border: calc(var(--u) * 0.04) solid #5a0620; border-radius: calc(var(--u) * 0.12);
+}
+.arms-list {
+  height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 0.1); padding-right: calc(var(--u) * 0.05);
+  scrollbar-width: thin; scrollbar-color: #ff9a1a transparent;
+}
+.arms-row {
+  position: relative; flex: none; height: calc(var(--u) * 1.5); box-sizing: border-box; border: calc(var(--u) * 0.04) solid #101018; border-radius: calc(var(--u) * 0.1);
+  display: flex; align-items: center; gap: calc(var(--u) * 0.2); padding: 0 calc(var(--u) * 0.2);
+  background: linear-gradient(#4a4e5e, #34364a);
+}
+.arms-row.is-owned { background: linear-gradient(#3a6a4a, #284a34); }
+.arms-row.is-equipped { background: linear-gradient(#3a8a5a, #26603c); box-shadow: inset 0 0 0 calc(var(--u) * 0.03) #6dff9a; }
+.arms-blocks { flex: none; display: flex; gap: calc(var(--u) * 0.1); width: calc(var(--u) * 1.5); justify-content: center; align-items: center; }
+.arms-blocks span {
+  width: calc(var(--u) * 0.6); height: calc(var(--u) * 1.15); background-size: 100% 100%; image-rendering: pixelated;
+  border: calc(var(--u) * 0.02) solid rgba(0, 0, 0, 0.45); box-shadow: calc(var(--u) * 0.03) calc(var(--u) * 0.04) 0 rgba(0, 0, 0, 0.35);
+}
+.arms-blocks span:first-child { transform: skewY(-4deg) rotate(-3deg); }
+.arms-blocks span:last-child { transform: skewY(5deg); filter: brightness(0.82); }
+.arms-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1; gap: calc(var(--u) * 0.04); }
+.arms-name { font-size: calc(var(--u) * 0.44); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arms-rarity { font-size: calc(var(--u) * 0.27); }
+.arms-mult { display: flex; align-items: center; gap: calc(var(--u) * 0.06); font-size: calc(var(--u) * 0.4); }
+.arms-mult-icon { width: calc(var(--u) * 0.4); height: calc(var(--u) * 0.4); flex: none; }
+.hud .arms-btn {
+  flex: none; width: calc(var(--u) * 1.7); height: calc(var(--u) * 0.6); padding: 0; min-width: 0; box-sizing: border-box;
+  font-size: calc(var(--u) * 0.36); background: linear-gradient(#7cff30, #3fc010); border: calc(var(--u) * 0.03) solid #1d1d22; border-radius: calc(var(--u) * 0.06);
+}
+.hud .arms-btn.is-poor { filter: grayscale(0.7) brightness(0.8); }
+.hud .arms-btn:disabled { cursor: default; }
+
+/* Phones / portrait: size the window to the viewport instead of the 1920x976 reference. */
+@media (max-width: 900px), (max-aspect-ratio: 4 / 3) {
+  .arms-window { --u: min(calc(100vw / 8.4), calc(100vh / 5.6)); }
+  .arms-panel { width: calc(var(--u) * 7.7); max-width: 94vw; }
+}
+
+/* Tutorial discount: the normal price, struck through, above the reduced one. */
+.hud .arms-btn { position: relative; }
+.arms-was {
+  position: absolute; left: 50%; top: calc(var(--u) * -0.34); transform: translateX(-50%);
+  font-size: calc(var(--u) * 0.3); color: #ff6a6a; text-decoration: line-through; text-decoration-thickness: calc(var(--u) * 0.05);
+}

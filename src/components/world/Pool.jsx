@@ -1,0 +1,56 @@
+import { useMemo } from 'react'
+import { LEADERBOARDS, LEADERBOARD_ROWS, POOL } from '../../data/world.js'
+import { MAT, plastic } from '../../materials/world.js'
+import { leaderboardTexture } from '../../utils/labels.js'
+import { useLeaderboardStore } from '../../store/useLeaderboardStore.js'
+import { formatCash, compactNumber, formatDuration } from '../../utils/format.js'
+import { getDisplayName } from '../../systems/bloxity.js'
+import { Block } from './parts.jsx'
+
+const FORMAT = { cash: formatCash, strength: compactNumber, playTime: formatDuration }
+
+const BOARD_W = 7
+const BOARD_H = 6.5
+
+function Leaderboard({ title, stat, frame, icon, x, z, rot }) {
+  const data = useLeaderboardStore((s) => s[stat])
+  const rows = useMemo(() => {
+    const me = getDisplayName()
+    // Server may flag the row itself; otherwise match on the viewer's own display name.
+    const live = data.map((r) => ({ name: r.name, value: FORMAT[stat](r.value), mine: !!r.mine || (!!me && r.name === me) }))
+    while (live.length < LEADERBOARD_ROWS) live.push({ name: '---', value: '-' }) // not enough players yet
+    return live
+  }, [data, stat])
+  const map = useMemo(() => leaderboardTexture(title, frame, icon, rows), [title, frame, icon, rows])
+  return (
+    <group position={[x, 0, z]} rotation-y={rot}>
+      {[-1, 1].map((s) => (
+        <Block key={s} x={s * (BOARD_W / 2 - 0.4)} w={0.35} h={1.6} d={0.35} mat={plastic(frame)} />
+      ))}
+      <mesh position={[0, 1.5 + BOARD_H / 2, 0]} rotation-x={-0.12} castShadow>
+        <boxGeometry args={[BOARD_W, BOARD_H, 0.3]} />
+        <meshStandardMaterial attach="material-0" color={frame} />
+        <meshStandardMaterial attach="material-1" color={frame} />
+        <meshStandardMaterial attach="material-2" color={frame} />
+        <meshStandardMaterial attach="material-3" color={frame} />
+        <meshBasicMaterial attach="material-4" map={map} toneMapped={false} />
+        <meshStandardMaterial attach="material-5" color="#5a3016" />
+      </mesh>
+    </group>
+  )
+}
+
+// Raised blue stand on the west side with the three leaderboards on it.
+export default function Pool() {
+  const { x0, x1, z0, z1, h } = POOL
+  return (
+    <group>
+      <Block x={(x0 + x1) / 2} z={(z0 + z1) / 2} w={x1 - x0} h={h} d={z1 - z0} mat={MAT.leaderStand} />
+      <group position={[0, h, 0]}>
+        {LEADERBOARDS.map((b) => (
+          <Leaderboard key={b.title} {...b} />
+        ))}
+      </group>
+    </group>
+  )
+}

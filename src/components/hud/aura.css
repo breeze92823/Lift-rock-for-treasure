@@ -1,0 +1,50 @@
+/* --- Aura window (AuraWindow.jsx) ----------------------------------------- */
+.aura-window {
+  --u: 1rem; /* shrinks to fit narrow / portrait screens, see the media query below */
+  position: absolute; inset: 0; pointer-events: auto;
+  background: rgba(10, 20, 40, 0.35); backdrop-filter: blur(calc(var(--u) * 0.12)); -webkit-backdrop-filter: blur(calc(var(--u) * 0.12));
+}
+.aura-panel {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -48%);
+  width: calc(var(--u) * 7.7); height: calc(var(--u) * 4.9); box-sizing: border-box; padding: calc(var(--u) * 0.3) calc(var(--u) * 0.15) calc(var(--u) * 0.15);
+  background: linear-gradient(#2a2d4a, #181a30); border: calc(var(--u) * 0.05) solid #c030f0; border-radius: calc(var(--u) * 0.2);
+  box-shadow: 0 0 0 calc(var(--u) * 0.04) #10061a, 0 calc(var(--u) * 0.1) calc(var(--u) * 0.4) rgba(0, 0, 0, 0.4);
+}
+.aura-title {
+  position: absolute; left: calc(var(--u) * -0.1); top: calc(var(--u) * -0.45); padding: calc(var(--u) * 0.06) calc(var(--u) * 0.3) calc(var(--u) * 0.06) calc(var(--u) * 1); font-size: calc(var(--u) * 0.5);
+  background: linear-gradient(#d84aff, #9a1ad0); border: calc(var(--u) * 0.04) solid #2a0444; border-radius: calc(var(--u) * 0.1);
+}
+.aura-unused { position: absolute; left: calc(var(--u) * 0.05); top: calc(var(--u) * -0.2); width: calc(var(--u) * 0.8); height: calc(var(--u) * 0.8); }
+.hud .aura-close {
+  position: absolute; right: calc(var(--u) * -0.2); top: calc(var(--u) * -0.45); width: calc(var(--u) * 0.85); height: calc(var(--u) * 0.85);
+  font-size: calc(var(--u) * 0.6); background: #e8164d; border: calc(var(--u) * 0.04) solid #5a0620; border-radius: calc(var(--u) * 0.12);
+}
+.aura-list {
+  height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 0.1); padding-right: calc(var(--u) * 0.05);
+  scrollbar-width: thin; scrollbar-color: #c030f0 transparent;
+}
+.aura-row {
+  position: relative; flex: none; height: calc(var(--u) * 1.5); box-sizing: border-box; border: calc(var(--u) * 0.04) solid #101018; border-radius: calc(var(--u) * 0.1);
+  display: flex; align-items: center; gap: calc(var(--u) * 0.2); padding: 0 calc(var(--u) * 0.2);
+  background: linear-gradient(#4a4e5e, #34364a);
+}
+.aura-row.is-owned { background: linear-gradient(#3a6a4a, #284a34); }
+.aura-row.is-equipped { background: linear-gradient(#3a8a5a, #26603c); box-shadow: inset 0 0 0 calc(var(--u) * 0.03) #6dff9a; }
+.aura-orb { flex: none; width: calc(var(--u) * 1.2); height: calc(var(--u) * 1.2); margin: 0 calc(var(--u) * 0.15); filter: drop-shadow(0 0 calc(var(--u) * 0.08) rgba(255,255,255,0.35)); }
+.aura-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1; gap: calc(var(--u) * 0.04); }
+.aura-name { font-size: calc(var(--u) * 0.44); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aura-rarity { font-size: calc(var(--u) * 0.27); }
+.aura-mult { display: flex; align-items: center; gap: calc(var(--u) * 0.06); font-size: calc(var(--u) * 0.4); }
+.aura-mult-icon { width: calc(var(--u) * 0.4); height: calc(var(--u) * 0.4); flex: none; }
+.hud .aura-btn {
+  flex: none; width: calc(var(--u) * 1.7); height: calc(var(--u) * 0.6); padding: 0; min-width: 0; box-sizing: border-box;
+  font-size: calc(var(--u) * 0.36); background: linear-gradient(#7cff30, #3fc010); border: calc(var(--u) * 0.03) solid #1d1d22; border-radius: calc(var(--u) * 0.06);
+}
+.hud .aura-btn.is-poor { filter: grayscale(0.7) brightness(0.8); }
+.hud .aura-btn:disabled { cursor: default; }
+
+/* Phones / portrait: size the window to the viewport instead of the 1920x976 reference. */
+@media (max-width: 900px), (max-aspect-ratio: 4 / 3) {
+  .aura-window { --u: min(calc(100vw / 8.4), calc(100vh / 5.6)); }
+  .aura-panel { width: calc(var(--u) * 7.7); max-width: 94vw; }
+}
