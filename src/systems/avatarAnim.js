@@ -144,11 +144,52 @@ function applyHold(gait) {
 
 // speed01: horizontal speed / max move speed. Values outside 0..1 are
 // clamped. grounded (default true) gates the airborne pose below.
-export function updateGait(gait, dt, speed01, grounded = true, bending = false) {
+export function updateGait(gait, dt, speed01, grounded = true, bending = false, trainSpot = null, lifting = null) {
   if (!gait || dt <= 0) return
   tickGait(gait, dt, speed01, grounded)
+  applyTraining(gait, dt, trainSpot && speed01 < 0.1 ? trainSpot : null)
   if (gait.holding) applyHold(gait)
   applyBend(gait, dt, bending)
+  applyLift(gait, dt, lifting)
+}
+
+// Lifting a Lift gate. The player stands at the gate's face (liftGate.js moves
+// them there) with both hands pressed flat against it, crouched and leaning in
+// to push. progress 0..1 is the gate's health filled: the arms creep upward and
+// strain with it. progress >= 1 is the throw: both arms fling overhead. Eased in
+// from whatever walk/idle pose was set, applied last. Rotation-only on spine and
+// arms, so it works on both paths.
+const LIFT_PUSH_ARM = -1.5 // arms out in front, hands on the gate face
+const LIFT_PUSH_ARM_END = -1.95 // hands sliding up the face as the gate rises
+const LIFT_LEAN = 0.3
+const ease01 = (t) => t * t * (3 - 2 * t)
+const _qTarget = new THREE.Quaternion()
+function applyLift(gait, dt, progress) {
+  if (progress === null || progress === undefined) {
+    gait.liftW = 0
+    return
+  }
+  gait.liftW = Math.min(1, (gait.liftW || 0) + dt * 6)
+  gait.liftT = (gait.liftT || 0) + dt
+  const w = ease01(gait.liftW)
+  const throwing = progress >= 1
+  const fill = Math.min(1, progress)
+  const strain = throwing ? 0 : 0.4 + 0.6 * fill
+  const shake = Math.sin(gait.liftT * 42) * 0.035 * strain
+  const arm = throwing ? HOLD_ARM : LIFT_PUSH_ARM + (LIFT_PUSH_ARM_END - LIFT_PUSH_ARM) * fill + shake
+  gait.q.setFromAxisAngle(gait.axis, arm)
+  for (const a of gait.arms) {
+    _qTarget.copy(a.bind).premultiply(gait.q)
+    a.bone.quaternion.slerp(_qTarget, w)
+  }
+  if (gait.spine) {
+    const bind = gait.spineBind || (gait.spineBind = gait.spine.quaternion.clone())
+    gait.q.setFromAxisAngle(AXES.x, throwing ? -0.18 : LIFT_LEAN + shake)
+    _qTarget.copy(bind).premultiply(gait.q)
+    gait.spine.quaternion.slerp(_qTarget, w)
+  }
+  const root = gait.built.root
+  root.position.y = w * (throwing ? 0.04 : -0.15 + 0.02 * Math.sin(gait.liftT * 30) * strain)
 }
 
 // Bent-over pooping pose: the spine folds forward and the arms hang down. Eased in and
@@ -169,6 +210,91 @@ function applyBend(gait, dt, bending) {
     gait.q.setFromAxisAngle(gait.axis, BEND_ARM * gait.bend)
     for (const a of gait.arms) a.bone.quaternion.copy(a.bind).premultiply(gait.q)
   }
+}
+
+// Dumbbell workout on a training pad: a barbell held in both hands, the arms
+// raising and lowering in turn. Eased in and out, applied after walk/idle so
+// it wins on the arms; the bells exist only while it is active.
+const TRAIN_HZ = 0.33 // one rep every ~3 s: it is a heavy bar
+const TRAIN_EASE_HZ = 8
+const CURL_LOW = -0.1
+const CURL_HIGH = -1.4
+const BAR_REACH = 3.6 // plate offset from the bar centre, rig units
+const HAND_Y = -2.25 // hand centre down the arm bone, rig units
+const HAND_Z = -0.4 // arm meshes sit 0.4 behind their shoulder pivot
+let _barGeo = null
+function barbellGeometry() {
+  if (_barGeo) return _barGeo
+  const plate = (x, r, h) => new THREE.CylinderGeometry(r, r, h, 14).rotateZ(Math.PI / 2).translate(x, 0, 0)
+  _barGeo = [
+    new THREE.CylinderGeometry(0.12, 0.12, 2 * BAR_REACH + 0.6, 8).rotateZ(Math.PI / 2),
+    ...[-1, 1].flatMap((s) => [plate(s * 3.2, 0.9, 0.3), plate(s * 3.6, 0.72, 0.3)]),
+  ]
+  return _barGeo
+}
+
+function makeBarbell(color) {
+  const g = new THREE.Group()
+  const plateMat = new THREE.MeshStandardMaterial({ color, roughness: 0.5 })
+  const barMat = new THREE.MeshStandardMaterial({ color: '#9aa0a8', roughness: 0.4, metalness: 0.5 })
+  barbellGeometry().forEach((geo, i) => {
+    const m = new THREE.Mesh(geo, i ? plateMat : barMat)
+    m.castShadow = true
+    g.add(m)
+  })
+  g.userData.plateMat = plateMat
+  return g
+}
+
+function applyTraining(gait, dt, spot) {
+  const target = spot ? 1 : 0
+  gait.train = (gait.train || 0) + (target - (gait.train || 0)) * (1 - Math.exp(-TRAIN_EASE_HZ * dt))
+  const w = gait.train
+  if (w < 0.001) {
+    if (gait.bar) gait.bar.visible = false
+    return
+  }
+  const nodes = gait.built.nodes || {}
+  const left = gait.arms.find((a) => a.bone.name === 'ArmL1')
+  const pivot = nodes.ArmL_Offset // identity-rotation shoulder node: swings happen in its frame
+  if (!left || !pivot) return
+  if (!gait.bar) {
+    gait.bar = makeBarbell('#ff9d00')
+    pivot.add(gait.bar)
+  }
+  if (spot) {
+    gait.trainPhase = (gait.trainPhase || 0) + TRAIN_HZ * 2 * Math.PI * dt
+    gait.bar.userData.plateMat.color.set(spot.bell)
+  }
+
+  // Heavy rep: slow grind up, a shaking hold at the top, controlled lower, a
+  // beat to reset. The body leans back and dips under the load.
+  const u = ((gait.trainPhase || 0) / (2 * Math.PI)) % 1
+  const ease = (t) => t * t * (3 - 2 * t)
+  let lift
+  if (u < 0.1) lift = 0
+  else if (u < 0.5) lift = ease((u - 0.1) / 0.4)
+  else if (u < 0.62) lift = 1
+  else if (u < 0.95) lift = 1 - ease((u - 0.62) / 0.33)
+  else lift = 0
+  const strain = lift * (0.4 + 0.6 * Math.sin(Math.PI * Math.min(1, Math.max(0, (u - 0.1) / 0.52)))) // peaks near the top
+  const shake = Math.sin((gait.trainPhase || 0) * 38) * 0.025 * strain
+  const ang = (CURL_LOW + (CURL_HIGH - CURL_LOW) * lift + shake) * w
+  gait.q.setFromAxisAngle(gait.axis, ang)
+  for (const a of gait.arms) a.bone.quaternion.copy(a.bind).premultiply(gait.q)
+  if (gait.spine) {
+    gait.q.setFromAxisAngle(AXES.x, (-0.14 * lift + shake * 0.6) * w)
+    gait.spine.quaternion.copy(gait.spineBind).premultiply(gait.q)
+  }
+  gait.built.root.position.y = -0.05 * strain * w
+
+  // The bar rides the hands: rotate the hand point (down the arm) about the
+  // shoulder by the swing angle, centred between the two shoulders.
+  const len = -HAND_Y * (left.bone.scale.y || 1)
+  const c = Math.cos(ang)
+  const s = Math.sin(ang)
+  gait.bar.visible = true
+  gait.bar.position.set(-pivot.position.x, -len * c - HAND_Z * s, -len * s + HAND_Z * c)
 }
 
 function tickGait(gait, dt, speed01, grounded) {
@@ -257,6 +383,7 @@ export function disposeGait(gait) {
     gait.mixer.stopAllAction()
     gait.mixer.uncacheRoot(gait.built.root)
   }
+  if (gait.bar && gait.bar.parent) gait.bar.parent.remove(gait.bar)
   for (const limb of gait.limbs) limb.bone.quaternion.copy(limb.bind)
   if (gait.spine) gait.spine.quaternion.copy(gait.spineBind)
   if (gait.built && gait.built.root) gait.built.root.position.y = 0

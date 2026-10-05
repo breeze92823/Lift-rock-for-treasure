@@ -4,14 +4,14 @@ import { MAT, plastic } from '../../materials/world.js'
 import { leaderboardTexture } from '../../utils/labels.js'
 import { Block, Flat } from './parts.jsx'
 
-const CURB = 1
-const BOARD_W = 6
-const BOARD_H = 7.5
+const CURB = 1.2
+const BOARD_W = 7
+const BOARD_H = 6.5
 
-function Leaderboard({ title, frame, z }) {
-  const map = useMemo(() => leaderboardTexture(title, frame), [title, frame])
+function Leaderboard({ title, frame, icon, rows, x, z, rot }) {
+  const map = useMemo(() => leaderboardTexture(title, frame, icon, rows), [title, frame, icon, rows])
   return (
-    <group position={[POOL.x0 + 6, 0, z]} rotation-y={Math.PI / 2 - 0.3}>
+    <group position={[x, 0, z]} rotation-y={rot}>
       {[-1, 1].map((s) => (
         <Block key={s} x={s * (BOARD_W / 2 - 0.4)} w={0.35} h={1.6} d={0.35} mat={plastic(frame)} />
       ))}
@@ -33,10 +33,10 @@ export default function Pool() {
   const { x0, x1, z0, z1 } = POOL
   return (
     <group>
-      <Block x={(x0 + x1) / 2} z={z0 - CURB / 2} w={x1 - x0 + 2 * CURB} h={0.35} d={CURB} mat={MAT.curb} />
-      <Block x={(x0 + x1) / 2} z={z1 + CURB / 2} w={x1 - x0 + 2 * CURB} h={0.35} d={CURB} mat={MAT.curb} />
-      <Block x={x0 - CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.35} d={z1 - z0} mat={MAT.curb} />
-      <Block x={x1 + CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.35} d={z1 - z0} mat={MAT.curb} />
+      <Block x={(x0 + x1) / 2} z={z0 - CURB / 2} w={x1 - x0 + 2 * CURB} h={0.5} d={CURB} mat={MAT.curb} />
+      <Block x={(x0 + x1) / 2} z={z1 + CURB / 2} w={x1 - x0 + 2 * CURB} h={0.5} d={CURB} mat={MAT.curb} />
+      <Block x={x0 - CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.5} d={z1 - z0} mat={MAT.curb} />
+      <Block x={x1 + CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.5} d={z1 - z0} mat={MAT.curb} />
       <Flat x0={x0} x1={x1} z0={z0} z1={z1} h={0.22} mat={MAT.water} />
       {LEADERBOARDS.map((b) => (
         <Leaderboard key={b.title} {...b} />

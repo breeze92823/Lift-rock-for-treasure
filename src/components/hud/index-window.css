@@ -1,0 +1,44 @@
+/* --- Index window (IndexWindow.jsx) --------------------------------------- */
+.idx-window {
+  position: absolute; inset: 0; pointer-events: auto;
+  background: rgba(10, 20, 40, 0.3); backdrop-filter: blur(0.12rem); -webkit-backdrop-filter: blur(0.12rem);
+}
+.idx-panel {
+  position: absolute; left: 50%; top: 1.55rem; transform: translateX(-50%);
+  width: 7.7rem; height: 6.7rem; box-sizing: border-box;
+  background: linear-gradient(rgba(20, 30, 40, 0.92), rgba(40, 46, 56, 0.92));
+  border: 0.05rem solid #1c8ee8; border-radius: 0.22rem;
+  box-shadow: 0 0 0 0.04rem #05121f, 0 0.1rem 0.4rem rgba(0, 0, 0, 0.5);
+  padding: 1rem 0.25rem 0.2rem; display: flex; flex-direction: column; gap: 0.1rem;
+}
+.idx-title {
+  position: absolute; left: -0.05rem; top: -0.45rem; padding: 0.04rem 0.4rem 0.04rem 1.1rem;
+  font-size: 0.7rem; background: linear-gradient(#39b4ff, #1672d6); border: 0.04rem solid #05121f; border-radius: 0.1rem;
+}
+.idx-book { position: absolute; left: 0.15rem; top: -0.1rem; font-size: 0.8rem; -webkit-text-stroke: 0; }
+.idx-stats { position: absolute; left: 2.7rem; top: 0.45rem; font-size: 0.3rem; }
+.idx-stats b { color: #5ff03a; margin-left: 0.1rem; font-weight: inherit; }
+.hud .idx-close {
+  position: absolute; right: -0.2rem; top: -0.45rem; width: 0.85rem; height: 0.85rem; font-size: 0.6rem;
+  background: #e8164d; border: 0.04rem solid #5a0620; border-radius: 0.12rem;
+}
+.idx-grid {
+  flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1.6rem); gap: 0.15rem 0.12rem;
+  justify-content: center; align-content: start;
+}
+.idx-cell {
+  position: relative; height: 1.6rem; box-sizing: border-box; background: rgba(30, 36, 46, 0.9);
+  border: 0.03rem solid #10151c; display: flex; flex-direction: column; align-items: center;
+}
+.idx-cell .n { align-self: flex-start; font-size: 0.22rem; padding: 0.04rem 0.06rem 0; white-space: nowrap; }
+.idx-cell .ico { position: absolute; inset: 0.25rem 0 0.2rem; display: grid; place-items: center; font-size: 0.8rem; }
+.idx-cell .ico.is-unknown { filter: brightness(0); }
+.idx-cell .r { position: absolute; bottom: 0.02rem; font-size: 0.22rem; }
+.idx-cell .r.is-common { color: #bdbdbd; }
+.idx-cell .r.is-uncommon { color: #4fe08a; }
+.idx-reward { text-align: center; font-size: 0.26rem; margin-top: 0.05rem; }
+.idx-bar {
+  position: relative; height: 0.4rem; background: #15191f; border: 0.03rem solid #05121f; display: grid; place-items: center;
+}
+.idx-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #5ff00a; }
+.idx-bar span { position: relative; font-size: 0.26rem; }

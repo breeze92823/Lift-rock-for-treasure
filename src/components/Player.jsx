@@ -99,7 +99,7 @@ export default function Player() {
     const gait = gaitRef.current
     if (gait) {
       const speed01 = Math.hypot(player.velocity.x, player.velocity.z) / player.moveSpeed
-      updateGait(gait, Math.min(delta, 0.1), speed01, player.grounded, player.bending)
+      updateGait(gait, Math.min(delta, 0.1), speed01, player.grounded, player.bending, player.training, player.lifting)
     }
   })
 

@@ -7,7 +7,7 @@ export const GROUT = 0.05 // tile material grout width (materials/tile.js)
 
 // Walkable interior of the walled arena.
 export const ARENA = { minX: -56, maxX: 56, minZ: -72, maxZ: 48 }
-export const WALL = { height: 5, thickness: 40 } // thick so the green rim runs to the fog
+export const WALL = { height: 10, thickness: 40 } // thick so the green rim runs to the fog
 
 export const HUB = { x: 0, z: -45 } // spawn emblem at the plaza centre
 export const SPAWN = { x: HUB.x, y: 0.3, z: HUB.z + 2 }
@@ -37,45 +37,73 @@ export const COLORS = {
   glow: '#2de7ff',
 }
 
-// Hub stalls: counter faces `facing` (radians about +Y, 0 = facing +Z).
+// Hub stalls: one per plaza corner, counters angled toward the spawn emblem.
+// `facing` is radians about +Y (0 = facing +Z).
+const Q = Math.PI / 4
 export const STALLS = [
-  { id: 'sell', label: 'Sell', x: -11, z: -59, facing: Math.PI / 2, color: '#4ed82a', dark: '#2a9a12', counter: '#a5502a', npc: { shirt: '#111111', pants: '#2d2d2d', skin: '#f6d23a', shades: true } },
-  { id: 'arms', label: 'Arms', x: 11, z: -59, facing: -Math.PI / 2, color: '#ff9a1a', dark: '#e0640a', counter: '#d4511a', npc: { shirt: '#17181c', pants: '#17181c', skin: '#f0f0f0' } },
-  { id: 'aura', label: 'Aura', x: -15, z: -35, facing: Math.PI, color: '#b234e8', dark: '#7a17b0', counter: '#8a3b1e', npc: null },
-  { id: 'upgrades', label: 'Upgrades', x: 15, z: -35, facing: Math.PI, color: '#35b6ff', dark: '#1679d9', counter: '#8a3b1e', npc: null },
+  { id: 'aura', label: 'Aura', x: -12, z: -55, facing: Q, color: '#b234e8', dark: '#7a17b0', counter: '#8a3b1e', npc: null },
+  { id: 'sell', label: 'Sell', x: 12, z: -55, facing: -Q, color: '#4ed82a', dark: '#2a9a12', counter: '#a5502a', npc: { shirt: '#111111', pants: '#2d2d2d', skin: '#f6d23a', shades: true } },
+  { id: 'upgrades', label: 'Upgrades', x: -12, z: -35, facing: 3 * Q, color: '#35b6ff', dark: '#1679d9', counter: '#8a3b1e', npc: null },
+  { id: 'arms', label: 'Arms', x: 12, z: -35, facing: -3 * Q, color: '#ff9a1a', dark: '#e0640a', counter: '#d4511a', npc: { shirt: '#17181c', pants: '#17181c', skin: '#f0f0f0' } },
 ]
 
+// Drainage channels sunk along both floor edges. Shallower than the player's
+// step height so they can climb back out, but they do drop in.
+export const DRAIN = { width: 1, depth: 0.5 }
+
 // The Lift corridor: a walled channel running north from the plaza. It is a
-// chain of zones (dark loot floor) separated by luck barriers, each barrier
-// preceded by an orange LIFT stripe.
+// chain of identical zones. Each zone is an entry (Gateway or Lift Pad) followed
+// by a Loot Floor that a rock gate covers completely.
 export const LIFT = {
   x: 0,
   width: 18, // inner width between the corridor walls
   wallW: 5, // thickness of the side walls
   zStart: ARENA.minZ, // corridor mouth: flush with the hub's north wall
-  zoneLen: 20,
-  stripeLen: 2,
-  barrierLen: 5,
+  entryLen: 4, // Gateway / Lift Pad at the south end of each zone
+  lootLen: 16, // Loot Floor, fully covered by the zone's gate
   barrierH: 5, // plinth + rock steps; matches the wall height
-  barriers: [
-    { luck: 2, req: '500', plinth: '#1f6b57', rock: '#2f8f78', rock2: '#3aa88c' },
-    { luck: 3, req: '1.5K', plinth: '#6a3fb5', rock: '#8a5fd6', rock2: '#a583ea' },
-    { luck: 4, req: '3K', plinth: '#b5611f', rock: '#d6812f', rock2: '#eca255' },
-    { luck: 5, req: '5K', plinth: '#2a5fc4', rock: '#3f7fe8', rock2: '#68a0f8' },
+  zones: [
+    { luck: 1, req: '0', floor: '#3a3b40' },
+    { luck: 3, req: '1.5K', floor: '#2f6fc0' },
+    { luck: 4, req: '3K', floor: '#6a3fb5' },
+    { luck: 5, req: '5K', floor: '#c026c8' },
   ],
 }
+const ZONE_LEN = LIFT.entryLen + LIFT.lootLen
+// Gate health: 100, 500, 2.5K, 12.5K ... (x5 per zone). The gate is thrown once
+// its bar is full; see systems/liftGate.js.
+export const gateHealth = (i) => 100 * 5 ** i
+const GATE_STYLE = { plinth: '#17191e', rock: '#eceef2', rock2: '#9ea1a8' }
 
-// Lay the zones and barriers out north from zStart. Z values run decreasing.
-let cursor = LIFT.zStart
-export const LIFT_BARRIERS = LIFT.barriers.map((b) => {
-  const stripe1 = cursor - LIFT.zoneLen
-  const stripe0 = stripe1 - LIFT.stripeLen
-  const zS = stripe0 // barrier south (front) face
-  const zN = zS - LIFT.barrierLen
-  cursor = zN
-  return { ...b, stripeZ: (stripe1 + stripe0) / 2, zS, zN }
+// Lay the zones out north from zStart. Z values run decreasing.
+export const LIFT_ZONES = LIFT.zones.map((zn, i) => {
+  const zFrom = LIFT.zStart - i * ZONE_LEN
+  const lootFrom = zFrom - LIFT.entryLen
+  const zTo = zFrom - ZONE_LEN
+  return {
+    ...zn,
+    hp: gateHealth(i),
+    zFrom,
+    zTo,
+    entryZ: (zFrom + lootFrom) / 2,
+    gate: {
+      ...GATE_STYLE,
+      luck: zn.luck,
+      req: zn.req,
+      hp: gateHealth(i),
+      w: LIFT.width - 2 * DRAIN.width, // stops at the drainage channels
+      zS: lootFrom,
+      zN: zTo,
+    },
+  }
 })
-export const LIFT_END = cursor - LIFT.zoneLen // far end of the last zone
+export const LIFT_END = LIFT.zStart - LIFT.zones.length * ZONE_LEN // far end of the last zone
+
+export const LIFT_DRAINS = [-1, 1].map((s) => {
+  const inner = LIFT.x + s * (LIFT.width / 2 - DRAIN.width)
+  const outer = LIFT.x + s * (LIFT.width / 2)
+  return { x0: Math.min(inner, outer), x1: Math.max(inner, outer), z0: LIFT_END, z1: LIFT.zStart, floor: -DRAIN.depth }
+})
 
 // Treasure display pedestals just south of the Lift corridor mouth.
 export const TREASURES = [
@@ -85,31 +113,53 @@ export const TREASURES = [
   { id: 'skull', name: 'Infinity Skull', rarity: 'Exclusive', count: '983/1000', note: '150% of your BEST Treasure!', x: 11, z: -66, pad: '#ff9d1c' },
 ]
 
-export const POOL = { x0: -52, x1: -33, z0: -64, z1: -28 }
+export const POOL = { x0: -51, x1: -35, z0: -60, z1: -32 }
+// Shallow arc: side boards turn inward, the middle one stands slightly back.
+// `rot` is the board's yaw (π/2 faces east, toward the hub).
+const LB_NAMES = ['xXRockKing', 'Builderman', 'NoobMaster', 'LiftQueen', 'Treasure4U', 'MightyMo', 'Guest_1337']
+const lbRows = (values) => values.map((value, i) => ({ name: LB_NAMES[i], value }))
 export const LEADERBOARDS = [
-  { title: 'Top Cash', frame: '#2fbf3a', z: -56 },
-  { title: 'Top Power', frame: '#2f86e8', z: -46 },
-  { title: 'Top Time', frame: '#e8302f', z: -36 },
+  { title: 'Top Cash', icon: 'cash', frame: '#2fbf3a', x: -46, z: -53.5, rot: Math.PI / 2 - 0.4,
+    rows: lbRows(['$173.0T', '$113.9T', '$81.5T', '$60.7T', '$54.6T', '$50.1T', '$37.3T']) },
+  { title: 'Top Power', icon: 'power', frame: '#2f86e8', x: -47.5, z: -46, rot: Math.PI / 2,
+    rows: lbRows(['906.88T', '585.69T', '347.61T', '292.94T', '245.01T', '227.26T', '179.58T']) },
+  { title: 'Top Time', icon: 'time', frame: '#e8302f', x: -46, z: -38.5, rot: Math.PI / 2 + 0.4,
+    rows: lbRows(['6d 11h', '6d 1h', '5d 11h', '5d 3h', '4d 18h', '4d 6h', '4d 2h']) },
 ]
 
-// Training pads: two columns either side of a stepped walkway.
+// Training: one raised platform, two rows of five slots. The front row
+// (nearest the hub plaza) has its middle slot left open as the entrance.
+// Seen from the plaza looking east, slots run north to south.
 export const TRAINING = {
-  walkX: 39,
-  colX: [32.5, 45.5],
-  rowZ: [-64, -56, -48, -40, -32],
+  rowX: { front: 34, back: 43 },
+  slotZ: [-64, -56, -48, -40, -32],
   pad: 5,
+  platform: { x0: 30, x1: 48, z0: -68, z1: -28, h: 0.4 },
+  // The back (higher-power) row stands on a raised tier reached by four steps.
+  tier: { x0: 40.1, h: 2.4 },
+  steps: [
+    { x0: 36.5, x1: 37.4, h: 0.9 },
+    { x0: 37.4, x1: 38.3, h: 1.4 },
+    { x0: 38.3, x1: 39.2, h: 1.9 },
+    { x0: 39.2, x1: 40.1, h: 2.4 },
+  ],
+  bannerX: 55,
 }
+// Floor height a pad row stands on.
+export const rowBaseY = (row) => (row === 'back' ? TRAINING.tier.h : TRAINING.platform.h)
+// req: { type: 'starter' } | { type: 'rebirth', n } | { type: 'hex', n }.
+// The powers of the hex-gated pads (x15, x100, x250) are placeholders: the
+// reference screenshots hide their label text.
 export const TRAINING_PADS = [
-  { power: 'x1.5', rebirths: 0, pad: '#9f8de8', bell: '#5a6fd6', starter: true },
-  { power: 'x2', rebirths: 1, pad: '#6fe0c4', bell: '#8a5a2b' },
-  { power: 'x3', rebirths: 2, pad: '#ffcb2e', bell: '#ff9d00' },
-  { power: 'x5', rebirths: 3, pad: '#37d4ff', bell: '#1d6fd8' },
-  { power: 'x10', rebirths: 4, pad: '#ff9e3d', bell: '#ff3ea5', dotted: true },
-  { power: 'x15', rebirths: 5, pad: '#d81e28', bell: '#2b1416', dotted: true },
-  { power: 'x25', rebirths: 7, pad: '#ff4fd0', bell: '#ff7ae0', dotted: true },
-  { power: 'x50', rebirths: 10, pad: '#e8f4ff', bell: '#7fd6ff' },
-  { power: 'x100', rebirths: 15, pad: '#35d43a', bell: '#1f9a22' },
-  { power: 'x250', rebirths: 25, pad: '#b7743e', bell: '#7a4320', cookie: true },
+  { row: 'front', slot: 0, power: 'x2', req: { type: 'rebirth', n: 1 }, pad: '#6fe0c4', rim: '#ff9e3d', bell: '#8a5a2b', bar: '#5ec9b4' },
+  { row: 'front', slot: 1, power: 'x1.5', req: { type: 'starter' }, pad: '#9f8de8', rim: '#5b4aa8', bell: '#4a4f8a', bar: '#8d8fb5' },
+  { row: 'front', slot: 3, power: 'x5', req: { type: 'rebirth', n: 2 }, pad: '#ffcb2e', rim: '#c98a00', bell: '#ff9d00', bar: '#4a4f58' },
+  { row: 'front', slot: 4, power: 'x25', req: { type: 'rebirth', n: 7 }, pad: '#37d4ff', rim: '#1d7fd8', bell: '#1d6fd8', bar: '#37d4ff' },
+  { row: 'back', slot: 0, power: 'x15', req: { type: 'hex', n: 29 }, pad: '#d81e28', rim: '#7a0f16', bell: '#c8202a', bar: '#2b2b30', pattern: 'splatter' },
+  { row: 'back', slot: 1, power: 'x10', req: { type: 'rebirth', n: 4 }, pad: '#e8f4ff', rim: '#2fa0a8', bell: '#7fd6ff', bar: '#2fa0a8' },
+  { row: 'back', slot: 2, power: 'x100', req: { type: 'hex', n: 559 }, pad: '#ff4fd0', rim: '#a02a86', bell: '#ff7ae0', bar: '#ffe94a', pattern: 'leopard', cycle: true },
+  { row: 'back', slot: 3, power: 'x50', req: { type: 'rebirth', n: 10 }, pad: '#35d43a', rim: '#1f9a22', bell: '#1f9a22', bar: '#0f5f14' },
+  { row: 'back', slot: 4, power: 'x250', req: { type: 'hex', n: 225 }, pad: '#b7743e', rim: '#7a4320', bell: '#c98a4b', bar: '#7a4320', pattern: 'cookie', cookie: true },
 ]
 
 // Player plots: long axis along X, entrance on the chevron-path side.
@@ -149,13 +199,49 @@ export const WALLS = [
   { x: ARENA.maxX + T / 2, z: midZ, w: T, d: AD, h: WALL.height },
 ]
 
+// Training collision: the platform and pad rims are walkable steps; each
+// barbell is a solid wall, built from small boxes along its bar.
+const TP = TRAINING.platform
+const TRAINING_BLOCKS = [
+  { x: (TP.x0 + TP.x1) / 2, z: (TP.z0 + TP.z1) / 2, w: TP.x1 - TP.x0, d: TP.z1 - TP.z0, h: TP.h },
+  ...[...TRAINING.steps, { x0: TRAINING.tier.x0, x1: TP.x1, h: TRAINING.tier.h }].map((s) => ({
+    x: (s.x0 + s.x1) / 2, z: (TP.z0 + TP.z1) / 2, w: s.x1 - s.x0, d: TP.z1 - TP.z0, h: s.h,
+  })),
+  ...TRAINING_PADS.flatMap((p) => {
+    const px = TRAINING.rowX[p.row]
+    const pz = TRAINING.slotZ[p.slot]
+    const base = rowBaseY(p.row)
+    const bells = [-1.6, -0.8, 0, 0.8, 1.6].map((o) => ({
+      x: px + 1, z: pz + o, w: 1.1, d: 1.1, h: base + 1.4, // tall enough to block, not step onto
+    }))
+    return [{ x: px, z: pz, w: TRAINING.pad, d: TRAINING.pad, h: base + 0.3 }, ...bells]
+  }),
+]
+
+// Where the player stands to work out: one spot per pad, on top of its rim.
+export const TRAINING_SPOTS = TRAINING_PADS.map((p) => ({
+  key: `${p.row}${p.slot}`,
+  x: TRAINING.rowX[p.row],
+  z: TRAINING.slotZ[p.slot],
+  top: rowBaseY(p.row) + 0.3,
+  bell: p.bell,
+  power: parseFloat(p.power.slice(1)), // 'x1.5' -> 1.5
+  req: p.req,
+}))
+
 export const BLOCKS = [
   ...WALLS,
-  ...LIFT_BARRIERS.map((b) => ({ x: LIFT.x, z: (b.zS + b.zN) / 2, w: LIFT.width, d: LIFT.barrierLen, h: LIFT.barrierH })),
-  ...STALLS.map((s) => ({ x: s.x, z: s.z, w: 3, d: 3, h: 1.2 })),
+  ...TRAINING_BLOCKS,
+  ...LIFT_ZONES.map(({ gate: b }) => ({ x: LIFT.x, z: (b.zS + b.zN) / 2, w: b.w, d: b.zS - b.zN, h: LIFT.barrierH, gate: b.luck })),
+  // counter run as three small boxes along its (rotated) axis; AABBs can't turn
+  ...STALLS.flatMap((s) => [-1.2, 0, 1.2].map((lx) => ({
+    x: s.x + lx * Math.cos(s.facing) + 0.5 * Math.sin(s.facing),
+    z: s.z - lx * Math.sin(s.facing) + 0.5 * Math.cos(s.facing),
+    w: 1.4, d: 1.4, h: 1.2,
+  }))),
   ...PLOTS.map((p) => ({ x: p.side * (PLOT.inner + PLOT.width / 2), z: p.z, w: PLOT.width, d: PLOT.depth, h: PLOT.h })),
 ]
 
 export const COLLIDERS = BLOCKS.map((b) => ({
-  x0: b.x - b.w / 2, x1: b.x + b.w / 2, z0: b.z - b.d / 2, z1: b.z + b.d / 2, top: GROUND_Y + b.h,
+  x0: b.x - b.w / 2, x1: b.x + b.w / 2, z0: b.z - b.d / 2, z1: b.z + b.d / 2, top: GROUND_Y + b.h, gate: b.gate, // gate: luck of a Lift gate, which stops colliding once lifted
 }))

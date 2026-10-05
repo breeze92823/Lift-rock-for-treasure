@@ -25,10 +25,10 @@ function Awning({ color, dark }) {
 
 function Ring({ color }) {
   return (
-    <group position={[0, 0.08, 3.4]} rotation-x={-Math.PI / 2}>
+    <group position={[0, 0.08, 2.8]} rotation-x={-Math.PI / 2}>
       <mesh>
-        <torusGeometry args={[1.7, 0.1, 8, 48]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} toneMapped={false} />
+        <torusGeometry args={[1.7, 0.04, 8, 64]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} toneMapped={false} />
       </mesh>
       <mesh>
         <circleGeometry args={[1.7, 48]} />
@@ -51,7 +51,7 @@ function Stall({ s }) {
       <Block z={-1.1} y={0} w={3.4} h={0.12} d={0.25} mat={MAT.wood} />
       <Awning color={s.color} dark={s.dark} />
       {s.npc && <Npc {...s.npc} position={[0, 0, -0.5]} />}
-      <Label position={[0, 5, 0]} height={2.2} lines={[{ text: s.label, size: 110, fill: s.color, stroke: '#0e1a05', line: 20 }]} />
+      <Label position={[0, 4.4, 0.8]} height={2.2} lines={[{ text: s.label, size: 110, fill: s.color, stroke: '#0e1a05', line: 20 }]} />
       <Ring color={s.color} />
     </group>
   )

@@ -1,5 +1,9 @@
 import { showMenu } from './bloxity.js'
 import { INTERACT_KEY } from '../data/interact.js'
+import { STRENGTH_PER_CLICK } from '../data/actionPopups.js'
+import { gainStrength } from './strengthGain.js'
+import { useGameStore } from '../store/useGameStore.js'
+import { player } from './playerState.js'
 
 // inputState: WASD/arrow move (camera-relative, consumed by playerMovement),
 // a right-drag look delta + wheel zoom (consumed by cameraOrbit), and
@@ -66,6 +70,7 @@ export function releaseTouchInteract() {
 const held = new Set()
 let orbiting = false
 let installed = false
+let unsubLock = null
 
 function recomputeMove() {
   let x = 0
@@ -78,12 +83,19 @@ function recomputeMove() {
   inputState.move.z = z
 }
 
+// Player control is off while a modal window (Sell) is open.
+const locked = () => {
+  const s = useGameStore.getState()
+  return s.sellOpen || s.rebirthOpen || s.indexOpen
+}
+
 function onKeyDown(e) {
   if (e.repeat) return
+  if (e.code === 'Escape') showMenu()
+  if (locked()) return
   held.add(e.code)
   if (e.code === 'Space') inputState.jump = true
   if (e.code === INTERACT_KEY) inputState.interact = true
-  if (e.code === 'Escape') showMenu() // opens the portal's own pause menu
   recomputeMove()
 }
 
@@ -94,7 +106,12 @@ function onKeyUp(e) {
 
 // Right-drag orbits the camera.
 function onPointerDown(e) {
-  if (e.pointerType === 'touch') return
+  // Each primary click/tap (HUD buttons stop propagation, so they don't count)
+  // adds strength and spawns the "+N" Arm popup (disabled while lifting a gate).
+  if (e.button === 0 && !locked() && player.lifting == null) {
+    gainStrength(STRENGTH_PER_CLICK)
+  }
+  if (e.pointerType === 'touch' || locked()) return
   if (e.button === 2) orbiting = true
 }
 
@@ -104,12 +121,13 @@ function onPointerUp(e) {
 }
 
 function onPointerMove(e) {
-  if (!orbiting) return
+  if (!orbiting || locked()) return
   inputState.look.dx += e.movementX || 0
   inputState.look.dy += e.movementY || 0
 }
 
 function onWheel(e) {
+  if (locked()) return
   if (e.target instanceof Element && e.target.closest('.shop-overlay')) return // scrolls the shop list instead
   inputState.zoom += e.deltaY
 }
@@ -138,6 +156,10 @@ export function isInteractKeyDown() {
 export function install() {
   if (installed) return
   installed = true
+  // Opening a modal drops any keys still held so the player stops dead.
+  unsubLock = useGameStore.subscribe((st, prev) => {
+    if ((st.sellOpen && !prev.sellOpen) || (st.rebirthOpen && !prev.rebirthOpen) || (st.indexOpen && !prev.indexOpen)) onBlur()
+  })
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('pointerdown', onPointerDown)
@@ -162,6 +184,7 @@ export function install() {
 export function uninstall() {
   if (!installed) return
   installed = false
+  unsubLock?.()
   onBlur()
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)

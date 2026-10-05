@@ -1,8 +1,17 @@
+import { useEffect, useState } from 'react'
 import './hud.css'
 import { useGameStore } from '../../store/useGameStore.js'
-import { resetPlayer } from '../../systems/playerState.js'
+import { player, resetPlayer } from '../../systems/playerState.js'
 import { showMenu } from '../../systems/bloxity.js'
 import { HOME_FACING, HOME_SPAWN, SPAWN, SPAWN_FACING } from '../../data/world.js'
+import InteractPrompt from './InteractPrompt.jsx'
+import ActionResult from './ActionResult.jsx'
+import ActionPopups from './ActionPopups.jsx'
+import SellWindow from './SellWindow.jsx'
+import RebirthWindow from './RebirthWindow.jsx'
+import IndexWindow from './IndexWindow.jsx'
+import { levelForRebirth } from '../../data/levels.js'
+import Hotbar from './Hotbar.jsx'
 import { ArmIcon, BackpackIcon, BookIcon, CashIcon, FaceIcon, GearIcon, GiftIcon, RebirthIcon, RobuxIcon, UpgradeIcon } from './icons.jsx'
 
 const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi']
@@ -20,9 +29,9 @@ const cash = (n) => (n < 1e6 ? `$${Math.floor(n).toLocaleString('en-US')}` : `$$
 // Keeps a click on the HUD from also reaching the world input handlers.
 const stop = (e) => e.stopPropagation()
 
-function MenuButton({ label, children, badge }) {
+function MenuButton({ label, children, badge, onClick }) {
   return (
-    <button className="hud-menu-btn" onPointerDown={stop}>
+    <button className="hud-menu-btn" onPointerDown={stop} onClick={onClick}>
       {badge && <span className="hud-menu-badge rbx">{badge}</span>}
       {children}
       <span className="hud-menu-label rbx">{label}</span>
@@ -43,6 +52,35 @@ function StrengthPack({ amount, price }) {
   )
 }
 
+// Spawn / Home are disabled while the player is lifting a gate or training.
+// `player` is mutated in place (no subscription), so poll it per frame and
+// only re-render when the busy flag flips.
+function TravelButtons() {
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    let raf
+    const tick = () => {
+      setBusy(player.lifting != null || player.training != null)
+      raf = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => cancelAnimationFrame(raf)
+  }, [])
+  const go = (spawn, facing) => () => {
+    if (player.lifting == null && player.training == null) resetPlayer(spawn, facing)
+  }
+  return (
+    <div className="hud-travel">
+      <button className="hud-travel-btn is-spawn rbx" disabled={busy} onPointerDown={stop} onClick={go(SPAWN, SPAWN_FACING)}>
+        Spawn
+      </button>
+      <button className="hud-travel-btn is-home rbx" disabled={busy} onPointerDown={stop} onClick={go(HOME_SPAWN, HOME_FACING)}>
+        Home
+      </button>
+    </div>
+  )
+}
+
 // Screen-space game UI laid out after the reference screenshots (1920x976).
 // 1rem = 100 px of that reference, scaled to the viewport (see hud.css), so
 // every value below reads straight off the screenshot.
@@ -52,14 +90,15 @@ export default function HUD() {
 
   return (
     <div className="hud">
-      <div className="hud-travel">
-        <button className="hud-travel-btn is-spawn rbx" onPointerDown={stop} onClick={() => resetPlayer(SPAWN, SPAWN_FACING)}>
-          Spawn
-        </button>
-        <button className="hud-travel-btn is-home rbx" onPointerDown={stop} onClick={() => resetPlayer(HOME_SPAWN, HOME_FACING)}>
-          Home
-        </button>
-      </div>
+      <InteractPrompt />
+      <ActionResult />
+      <ActionPopups />
+      <SellWindow />
+      <RebirthWindow />
+      <IndexWindow />
+      <Hotbar />
+
+      <TravelButtons />
 
       <button className="hud-gear" onPointerDown={stop} onClick={() => showMenu()} aria-label="Settings">
         <GearIcon />
@@ -77,7 +116,7 @@ export default function HUD() {
       </div>
 
       <div className="hud-menu">
-        <MenuButton label="Index">
+        <MenuButton label="Index" onClick={() => useGameStore.setState({ indexOpen: true })}>
           <BookIcon />
         </MenuButton>
         <MenuButton label="Arms">
@@ -86,7 +125,7 @@ export default function HUD() {
         <MenuButton label="Upgrades">
           <UpgradeIcon />
         </MenuButton>
-        <MenuButton label="Rebirth" badge={`${s.rebirthProgress}%`}>
+        <MenuButton label="Rebirth" badge={`${Math.min(100, Math.floor((s.level / levelForRebirth(s.rebirths)) * 100))}%`} onClick={() => useGameStore.setState({ rebirthOpen: true })}>
           <RebirthIcon />
         </MenuButton>
       </div>

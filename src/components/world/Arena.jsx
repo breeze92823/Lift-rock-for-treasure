@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ARENA, HUB, WALLS } from '../../data/world.js'
+import { ARENA, HUB, WALL, WALLS } from '../../data/world.js'
 import { MAT } from '../../materials/world.js'
 import { chevronTexture, emblemTexture } from '../../utils/labels.js'
 import { Block, Flat } from './parts.jsx'
@@ -15,7 +15,7 @@ const TREES = [
 
 function Tree({ x, z, s }) {
   return (
-    <group position={[x, 5, z]} scale={s}>
+    <group position={[x, WALL.height, z]} scale={s}>
       <mesh position={[0, 1, 0]} material={MAT.bark} castShadow>
         <cylinderGeometry args={[0.45, 0.55, 2, 8]} />
       </mesh>

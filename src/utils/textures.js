@@ -76,3 +76,33 @@ export function skyTexture() {
     ctx.fillRect(0, horizon + 110, W, H)
   })
 }
+
+// Plate face patterns for the training weights: base colour with splatter,
+// leopard rosettes or cookie chips painted on top.
+export function weightTexture(pattern, base) {
+  return canvasTexture(`weight${pattern}${base}`, 256, 256, (ctx, w, h) => {
+    const rand = seededRandom(pattern.length * 31 + 7)
+    ctx.fillStyle = base
+    ctx.fillRect(0, 0, w, h)
+    const blob = (x, y, r, color) => {
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.ellipse(x, y, r, r * (0.7 + rand() * 0.5), rand() * Math.PI, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    if (pattern === 'splatter') {
+      for (let i = 0; i < 26; i++) blob(rand() * w, rand() * h, 6 + rand() * 18, '#1a0a0c')
+    } else if (pattern === 'leopard') {
+      const spots = ['#1a1a1a', '#2a6bff', '#18c8ff']
+      for (let i = 0; i < 22; i++) {
+        const x = rand() * w
+        const y = rand() * h
+        const r = 10 + rand() * 14
+        blob(x, y, r, spots[i % spots.length])
+        blob(x, y, r * 0.5, base)
+      }
+    } else if (pattern === 'cookie') {
+      for (let i = 0; i < 18; i++) blob(rand() * w, rand() * h, 9 + rand() * 9, '#4a2510')
+    }
+  })
+}

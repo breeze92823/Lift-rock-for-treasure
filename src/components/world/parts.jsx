@@ -3,9 +3,9 @@ import { billboardTexture } from '../../utils/labels.js'
 import { MAT, plastic } from '../../materials/world.js'
 
 // Axis-aligned box sitting on y0 (default ground), centred on x/z.
-export function Block({ x = 0, y = 0, z = 0, w, h, d, mat, rot = 0, shadow = true }) {
+export function Block({ x = 0, y = 0, z = 0, w, h, d, mat, rot = 0, shadow = true, name }) {
   return (
-    <mesh position={[x, y + h / 2, z]} rotation-y={rot} material={mat} castShadow={shadow} receiveShadow>
+    <mesh name={name} position={[x, y + h / 2, z]} rotation-y={rot} material={mat} castShadow={shadow} receiveShadow>
       <boxGeometry args={[w, h, d]} />
     </mesh>
   )

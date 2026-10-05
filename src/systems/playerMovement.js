@@ -1,8 +1,11 @@
+import { padUnlocked } from './rebirth.js'
+import { showActionResult } from './actionResult.js'
 import { inputState } from './input.js'
 import { player } from './playerState.js'
 import { getYaw } from './cameraOrbit.js'
 import { terrainHeightAt } from './terrainHeight.js'
-import { PLAYER_MOVE_SPEED, WORLD_BOUNDS } from '../data/world.js'
+import { stepLift } from './liftGate.js'
+import { PLAYER_MOVE_SPEED, TRAINING, TRAINING_SPOTS, WORLD_BOUNDS } from '../data/world.js'
 
 // Kinematic capsule, stepped once per frame: apply input -> gravity ->
 // integrate -> keep on the ground slab -> clamp to the ground height under
@@ -27,6 +30,8 @@ function approach2D(v, targetX, targetZ, maxDelta) {
     v.z += dz * scale
   }
 }
+
+let lockedPad = null // locked training pad the player is standing on (message shows once per entry)
 
 export function step(dt) {
   if (dt <= 0) return
@@ -88,6 +93,29 @@ export function step(dt) {
     if (player.velocity.y < 0) player.velocity.y = 0
     player.grounded = true
   }
+
+  // Standing on a training pad's rim: the avatar picks up the dumbbells.
+  player.training = null
+  let onLocked = null
+  if (player.grounded) {
+    const reach = TRAINING.pad / 2 - 0.1
+    for (const s of TRAINING_SPOTS) {
+      const inside = Math.abs(p.x - s.x) < reach && Math.abs(p.z - s.z) < reach && p.y > s.top - 0.1
+      if (inside && !padUnlocked(s.req)) { // locked until the required rebirth
+        onLocked = s
+        break
+      }
+      if (Math.abs(p.x - s.x) < reach && Math.abs(p.z - s.z) < reach && p.y > s.top - 0.1) {
+        player.training = s
+        break
+      }
+    }
+  }
+
+  if (onLocked !== lockedPad && onLocked) showActionResult(`Requires Rebirth ${onLocked.req.n} to unlock!`, false)
+  lockedPad = onLocked
+
+  stepLift(dt)
 
   // Face the direction of travel.
   if (Math.hypot(wishX, wishZ) > 0.01 && (mv.x !== 0 || mv.z !== 0)) {

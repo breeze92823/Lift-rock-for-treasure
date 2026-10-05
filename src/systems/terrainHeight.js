@@ -1,11 +1,18 @@
-import { COLLIDERS, GROUND_Y, WORLD_BOUNDS } from '../data/world.js'
+import { COLLIDERS, GROUND_Y, LIFT_DRAINS, WORLD_BOUNDS } from '../data/world.js'
+import { clearedGates } from './liftGate.js'
 
 // Floor height under (x, z): the highest collider covering the point, else
-// the bare ground. playerMovement and the camera boom clamp both use this.
+// the bare ground (sunk inside a drainage channel). playerMovement and the
+// camera boom clamp both use this.
 export function terrainHeightAt(x, z) {
   let h = GROUND_Y
+  for (let i = 0; i < LIFT_DRAINS.length; i++) {
+    const d = LIFT_DRAINS[i]
+    if (x >= d.x0 && x <= d.x1 && z >= d.z0 && z <= d.z1) h = d.floor
+  }
   for (let i = 0; i < COLLIDERS.length; i++) {
     const c = COLLIDERS[i]
+    if (c.gate !== undefined && clearedGates.has(c.gate)) continue
     if (c.top > h && x >= c.x0 && x <= c.x1 && z >= c.z0 && z <= c.z1) h = c.top
   }
   return h

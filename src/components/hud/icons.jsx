@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { ARM_PATH } from '../../utils/labels.js'
 
 // Chunky cartoon HUD icons, 100x100 viewBox, dark outlines like the Roblox
@@ -6,15 +7,18 @@ import { ARM_PATH } from '../../utils/labels.js'
 const OUT = '#1d1d22'
 
 export function ArmIcon(props) {
+  // Per-instance id: a shared id breaks (unfilled icon) when the instance that
+  // owns the gradient is display:none, e.g. an idle popup node.
+  const gid = `g-arm-${useId().replace(/:/g, '')}`
   return (
     <svg viewBox="0 0 100 100" {...props}>
       <defs>
-        <linearGradient id="g-arm" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ffc93d" />
           <stop offset="1" stopColor="#ff7a00" />
         </linearGradient>
       </defs>
-      <path d={ARM_PATH} fill="url(#g-arm)" stroke="#7a3300" strokeWidth="6" strokeLinejoin="round" />
+      <path d={ARM_PATH} fill={`url(#${gid})`} stroke="#7a3300" strokeWidth="6" strokeLinejoin="round" />
       <path d="M22 70 C22 58 32 52 42 56" fill="none" stroke="#ffe08a" strokeWidth="5" strokeLinecap="round" opacity="0.8" />
       <path d="M72 14 C80 12 86 16 86 22" fill="none" stroke="#ffe08a" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
     </svg>

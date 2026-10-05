@@ -16,6 +16,12 @@ export function plastic(color, extra = {}) {
   return cache.get(key)
 }
 
+const liftFloors = new Map()
+export function liftFloor(color) {
+  if (!liftFloors.has(color)) liftFloors.set(color, studded(color, { studAmt: 0.5 }))
+  return liftFloors.get(color)
+}
+
 export const MAT = {
   grass: studded(COLORS.grass, { top2: COLORS.grass2, checker: 4 }),
   // Arena walls: blue checkered faces, green rim on top.
@@ -30,6 +36,9 @@ export const MAT = {
   liftPad: studded('#2a2d34', { studAmt: 0.5 }),
   curb: studded(COLORS.curb),
   walkway: studded('#8f96a6', { side: '#3d63d6' }),
+  trainPlatform: studded('#9aa6ea', { side: '#7a86d0' }),
+  trainStep: studded('#8794dc', { side: '#6874bf' }),
+  trainEntry: studded('#d6daf0', { side: '#b4b9dc' }),
   water: new MeshStandardMaterial({ color: COLORS.water, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 }),
   glow: new MeshStandardMaterial({ color: COLORS.glow, emissive: COLORS.glow, emissiveIntensity: 1.6, transparent: true, opacity: 0.85, toneMapped: false }),
   wood: plastic(COLORS.wood),

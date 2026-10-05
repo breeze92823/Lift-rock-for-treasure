@@ -191,14 +191,16 @@ export function zoneMarkerTexture(luck) {
   })
 }
 
-export function liftStripeTexture() {
-  return canvasTexture('lift-stripe', 1024, 128, (ctx, w, h) => {
+// `k` scales the artwork with the pad's depth (2 for a 4 m deep pad), so the
+// lettering keeps its proportions instead of being stretched tall.
+export function liftStripeTexture(k = 1) {
+  return canvasTexture(k === 1 ? 'lift-stripe' : `lift-stripe:${k}`, 1024, 128 * k, (ctx, w, h) => {
     ctx.fillStyle = vgrad(ctx, 0, h, '#ffad2e', '#ff7f0a')
     ctx.fillRect(0, 0, w, h)
     ctx.fillStyle = 'rgba(0,0,0,0.18)'
-    ctx.fillRect(0, h - 10, w, 10)
-    drawArm(ctx, w / 2 - 230, 14, 100)
-    strokeText(ctx, 'LIFT', w / 2 + 50, h / 2 + 4, { size: 104, fill: '#ffffff', stroke: '#1d1d1d', line: 16 })
+    ctx.fillRect(0, h - 10 * k, w, 10 * k)
+    drawArm(ctx, w / 2 - 230 * k, 14 * k, 100 * k)
+    strokeText(ctx, 'LIFT', w / 2 + 50 * k, h / 2 + 4 * k, { size: 104 * k, fill: '#ffffff', stroke: '#1d1d1d', line: 16 * k })
   })
 }
 
@@ -239,23 +241,96 @@ export function makeTimerBoard() {
   return { map, draw, aspect: canvas.width / canvas.height }
 }
 
-export function leaderboardTexture(title, frame) {
-  return canvasTexture(`lb:${title}`, 512, 640, (ctx, w, h) => {
+function drawBillIcon(ctx, x, y, s) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(-0.25)
+  roundRect(ctx, -s * 0.5, -s * 0.3, s, s * 0.6, s * 0.1)
+  ctx.fillStyle = '#4fd048'
+  ctx.fill()
+  ctx.lineWidth = s * 0.08
+  ctx.strokeStyle = '#0d5a1a'
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(0, 0, s * 0.17, 0, Math.PI * 2)
+  ctx.fillStyle = '#b6f5a8'
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawClockIcon(ctx, x, y, r) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.beginPath()
+  ctx.arc(0, 0, r, 0, Math.PI * 2)
+  ctx.fillStyle = '#ff3b3b'
+  ctx.fill()
+  ctx.lineWidth = r * 0.18
+  ctx.strokeStyle = '#fff'
+  ctx.stroke()
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(0, -r * 0.55)
+  ctx.lineTo(0, 0)
+  ctx.lineTo(r * 0.4, r * 0.2)
+  ctx.stroke()
+  ctx.restore()
+}
+
+const MEDALS = ['#ffd426', '#d9dde6', '#e0894a']
+const HEADS = ['#f2c9a0', '#c98e63', '#ffe0bd', '#8d5a3b', '#e8b48a']
+
+function drawAvatar(ctx, x, y, s, i) {
+  roundRect(ctx, x - s / 2, y - s / 2, s, s, s * 0.22)
+  ctx.fillStyle = HEADS[i % HEADS.length]
+  ctx.fill()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = '#2a1608'
+  ctx.stroke()
+  ctx.fillStyle = '#2a1608'
+  ctx.fillRect(x - s * 0.22, y - s * 0.08, s * 0.1, s * 0.16)
+  ctx.fillRect(x + s * 0.12, y - s * 0.08, s * 0.1, s * 0.16)
+}
+
+// `rows`: [{ name, value }] ranked top-down; `icon`: 'cash' | 'power' | 'time'.
+export function leaderboardTexture(title, frame, icon, rows) {
+  return canvasTexture(`lb:${title}`, 640, 576, (ctx, w, h) => {
+    roundRect(ctx, 0, 0, w, h, 34)
     ctx.fillStyle = frame
-    ctx.fillRect(0, 0, w, h)
-    ctx.fillStyle = '#6b3a1c'
-    ctx.fillRect(22, 22, w - 44, h - 44)
-    ctx.fillStyle = 'rgba(0,0,0,0.25)'
-    ctx.fillRect(22, 22, w - 44, 96)
-    strokeText(ctx, title, w / 2, 72, { size: 64, line: 12 })
-    const names = ['Ashan', 'Builderman', 'NoobMaster', 'xX_Rock_Xx', 'LiftKing', 'Treasure4U', 'Mighty', 'Guest_1337']
-    names.forEach((n, i) => {
-      const y = 150 + i * 58
-      ctx.fillStyle = i % 2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)'
-      ctx.fillRect(40, y - 24, w - 80, 50)
-      strokeText(ctx, `${i + 1}.`, 60, y + 2, { size: 32, align: 'left', line: 6, fill: i < 3 ? ['#ffd426', '#e2e6ee', '#e0894a'][i] : '#fff' })
-      strokeText(ctx, n, 112, y + 2, { size: 32, align: 'left', line: 6 })
-      strokeText(ctx, `${(9 - i) * 13}M`, w - 60, y + 2, { size: 30, align: 'right', line: 6, fill: '#7dff6a' })
+    ctx.fill()
+    roundRect(ctx, 10, 10, w - 20, h - 20, 26)
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.fill()
+    roundRect(ctx, 18, 18, w - 36, h - 36, 20)
+    ctx.fillStyle = vgrad(ctx, 18, h - 18, '#b85a1e', '#8a3d12')
+    ctx.fill()
+    const cx = 124
+    if (icon === 'cash') drawBillIcon(ctx, cx, 64, 72)
+    else if (icon === 'power') drawArm(ctx, cx - 34, 30, 68)
+    else drawClockIcon(ctx, cx, 64, 30)
+    strokeText(ctx, title, cx + 44, 66, { size: 66, line: 12, align: 'left' })
+    const top = 118
+    const step = (h - 18 - 12 - top) / rows.length
+    rows.forEach((r, i) => {
+      const y = top + i * step + step / 2
+      roundRect(ctx, 34, y - step / 2 + 3, w - 68, step - 6, 10)
+      ctx.fillStyle = i % 2 ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.26)'
+      ctx.fill()
+      if (i < 3) {
+        ctx.beginPath()
+        ctx.arc(66, y, 20, 0, Math.PI * 2)
+        ctx.fillStyle = MEDALS[i]
+        ctx.fill()
+        ctx.lineWidth = 4
+        ctx.strokeStyle = '#3a1800'
+        ctx.stroke()
+        strokeText(ctx, String(i + 1), 66, y + 2, { size: 26, line: 5, fill: '#3a1800', stroke: null })
+      } else {
+        strokeText(ctx, String(i + 1), 66, y + 2, { size: 28, line: 6 })
+      }
+      drawAvatar(ctx, 118, y, 36, i)
+      strokeText(ctx, r.name, 152, y + 2, { size: 30, align: 'left', line: 6 })
+      strokeText(ctx, r.value, w - 52, y + 2, { size: 30, align: 'right', line: 6, fill: '#7dff6a' })
     })
   })
 }
@@ -263,33 +338,60 @@ export function leaderboardTexture(title, frame) {
 export function trainingBannerTexture() {
   return canvasTexture('training', 2048, 400, (ctx, w, h) => {
     roundRect(ctx, 0, 0, w, h, 40)
-    ctx.fillStyle = rainbow(ctx, 0, 0, w, h)
+    ctx.fillStyle = '#8a3d00'
     ctx.fill()
-    roundRect(ctx, 26, 26, w - 52, h - 52, 28)
-    const g = ctx.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, '#ffe23a')
-    g.addColorStop(0.5, '#ffaa1a')
-    g.addColorStop(1, '#ff6a00')
-    ctx.fillStyle = g
+    roundRect(ctx, 22, 22, w - 44, h - 44, 30)
+    ctx.fillStyle = vgrad(ctx, 0, h, '#ffe23a', '#ff6a00')
     ctx.fill()
-    strokeText(ctx, 'TRAINING', w / 2, h / 2 + 12, { size: 250, fill: '#ffffff', stroke: '#5a2a00', line: 34 })
+    ctx.save()
+    ctx.translate(w / 2, h / 2 + 12)
+    ctx.transform(1, 0, -0.28, 1, 0, 0)
+    strokeText(ctx, 'TRAINING', 0, 0, { size: 250, fill: '#ffffff', stroke: '#3a1800', line: 40 })
+    ctx.restore()
   })
 }
 
+export function drawHex(ctx, x, y, r) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = r * 0.2
+  ctx.strokeStyle = '#0d5a1a'
+  ctx.fillStyle = '#7dff3a'
+  ctx.beginPath()
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + Math.PI / 6
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
+  }
+  ctx.closePath()
+  ctx.fill()
+  ctx.stroke()
+  ctx.fillStyle = '#1f9a22'
+  ctx.beginPath()
+  ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
+// Requirement plaque (rebirth count, hex count or "Starter") over the power.
 export function trainingLabelTexture(p) {
-  return canvasTexture(`tl:${p.power}:${p.rebirths}:${p.starter}`, 512, 256, (ctx, w) => {
-    const top = p.starter ? 'Starter' : null
+  const { type, n } = p.req
+  return canvasTexture(`tl:${p.power}:${type}:${n ?? ''}`, 512, 256, (ctx, w) => {
     roundRect(ctx, 100, 10, w - 200, 96, 18)
     ctx.fillStyle = 'rgba(40,40,60,0.85)'
     ctx.fill()
     ctx.lineWidth = 6
-    ctx.strokeStyle = '#c8cbe0'
+    ctx.strokeStyle = type === 'hex' ? '#2f9e2a' : '#c8cbe0'
     ctx.stroke()
-    if (top) {
-      strokeText(ctx, top, w / 2, 60, { size: 56, fill: '#ffffff', line: 10 })
+    if (type === 'starter') {
+      strokeText(ctx, 'Starter', w / 2, 60, { size: 56, fill: '#ffffff', line: 10 })
+    } else if (type === 'hex') {
+      const x0 = w / 2 - 12 * String(n).length
+      drawHex(ctx, x0 - 8, 58, 30)
+      strokeText(ctx, String(n), x0 + 36, 60, { size: 60, fill: '#ffffff', stroke: '#0d3a14', line: 10, align: 'left' })
     } else {
       drawRebirth(ctx, w / 2 - 50, 58, 30)
-      strokeText(ctx, String(p.rebirths), w / 2 + 20, 60, { size: 60, fill: '#ff4b4b', stroke: '#fff', line: 10 })
+      strokeText(ctx, String(n), w / 2 + 20, 60, { size: 60, fill: '#ff4b4b', stroke: '#fff', line: 10 })
     }
     strokeText(ctx, `${p.power} Power`, w / 2, 170, { size: 66, fill: '#ff8a1a', stroke: '#3a1800', line: 12 })
   })

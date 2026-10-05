@@ -8,9 +8,9 @@ Where everything is in the lobby. Coordinates are metres, `(x, z)`, with +X east
                       N (-Z)
         z=-72  ┌──────────┐ ┌──────────┐   LIFT corridor runs
                │ Cursed · Jet · Skull  │   north from the gap
-               │ Robot  Sell ·· Arms   │
+               │ Robot Aura ·· Sell    │
    Pool +      │          HUB (0,-45)  │         Training
-   boards      │      Aura ·· Upgrades │         pads + banner
+   boards      │  Upgrades ·· Arms     │         pads + banner
         z=-28  │          ║            │
                │  Plot ═══╬═══ Plot    │   chevron path
                │  Plot ═══╬═══ Plot    │   runs south
@@ -55,10 +55,10 @@ Each stall has a coloured ring in front of it, which is where an interaction wou
 
 | Stall | Position | Colour | Shopkeeper |
 | --- | --- | --- | --- |
-| Sell | (-11, -59) | Green | Yellow-faced, shades, black shirt |
-| Arms | (11, -59) | Orange | Pale, all black |
-| Aura | (-15, -35) | Purple | None |
-| Upgrades | (15, -35) | Blue | None |
+| Sell | (12, -55) | Green | Yellow-faced, shades, black shirt |
+| Arms | (12, -35) | Orange | Pale, all black |
+| Aura | (-12, -55) | Purple | None |
+| Upgrades | (-12, -35) | Blue | None |
 
 ## Treasure showcase
 
@@ -73,34 +73,29 @@ Each stall has a coloured ring in front of it, which is where an interaction wou
 
 | Landmark | Position |
 | --- | --- |
-| Pool | x -52..-33, z -64..-28 |
-| Top Cash board | (-46, -56) |
-| Top Power board | (-46, -46) |
-| Top Time board | (-46, -36) |
+| Pool | x -51..-35, z -60..-32 |
+| Top Cash board | (-46, -53.5), turned 0.4 rad inward |
+| Top Power board | (-47.5, -46), set back, faces east |
+| Top Time board | (-46, -38.5), turned 0.4 rad inward |
 
 ## East: training
 
-| Landmark | Position | Notes |
-| --- | --- | --- |
-| Walkway | x 39, z -67..-29 | Blue-edged, raised |
-| Pad columns | x 32.5 and x 45.5 | Alternate left / right by pad index |
-| Pad rows | z -64, -56, -48, -40, -32 | Two pads per row |
-| TRAINING banner | x 55, centred on the pad rows | Slanted rainbow sign facing the arena |
+One raised periwinkle platform (x 30..48, z -68..-28) with two rows of five 5 m slots. Slots run north to south at z -64, -56, -48, -40, -32. The front row (x 34) faces the plaza; its middle slot (z -48) is left open as the entrance. The back row is at x 43. Each pad has a coloured rim, two dumbbells in a V, and a label plaque above its back edge. The TRAINING banner (gold, slanted) is on the east wall at x 55, centred on the platform.
 
-Pads, in order (index 0 is column 32.5, row z -64):
+| Row | Slot z | Power | Requirement | Pad |
+| --- | --- | --- | --- | --- |
+| Front | -64 | x2 | 1 rebirth | Teal, orange rim |
+| Front | -56 | x1.5 | Starter | Purple |
+| Front | -48 | | | Entrance (open) |
+| Front | -40 | x5 | 2 rebirths | Yellow |
+| Front | -32 | x25 | 7 rebirths | Cyan |
+| Back | -64 | x15* | 29 hex | Dark red |
+| Back | -56 | x10 | 4 rebirths | White, teal rim |
+| Back | -48 | x100* | 559 hex | Colour-cycling, spotted bells |
+| Back | -40 | x50 | 10 rebirths | Green |
+| Back | -32 | x250* | 225 hex | Giant cookie |
 
-| # | Power | Rebirths needed |
-| --- | --- | --- |
-| 1 | x1.5 (Starter) | 0 |
-| 2 | x2 | 1 |
-| 3 | x3 | 2 |
-| 4 | x5 | 3 |
-| 5 | x10 | 4 |
-| 6 | x15 | 5 |
-| 7 | x25 | 7 |
-| 8 | x50 | 10 |
-| 9 | x100 | 15 |
-| 10 | x250 | 25 |
+\* Power is a placeholder: the reference screenshots hide that label text.
 
 ## South: player plots
 

@@ -8,6 +8,8 @@ export const player = {
   velocity: { x: 0, y: 0, z: 0 },
   grounded: true,
   bending: false, // drives the bent-over pose in avatarAnim; unused for now
+  lifting: null, // 0..1 progress while heaving a Lift gate, else null (drives the lift pose)
+  training: null, // the TRAINING_SPOTS entry the player stands on, else null
   facing: Math.PI, // yaw the character model faces, radians
   moveSpeed: PLAYER_MOVE_SPEED,
   dims: { radius: 0.4, height: 1.8 },
@@ -21,6 +23,7 @@ export function resetPlayer(spawn = { x: 0, y: 0, z: 0 }, facing = Math.PI) {
   player.velocity.y = 0
   player.velocity.z = 0
   player.grounded = true
+  player.lifting = null
   player.facing = facing
 }
 
