@@ -4,11 +4,10 @@ import { MAT, plastic } from '../../materials/world.js'
 import { leaderboardTexture } from '../../utils/labels.js'
 import { useLeaderboardStore } from '../../store/useLeaderboardStore.js'
 import { formatCash, compactNumber, formatDuration } from '../../utils/format.js'
-import { Block, Flat } from './parts.jsx'
+import { Block } from './parts.jsx'
 
 const FORMAT = { cash: formatCash, strength: compactNumber, playTime: formatDuration }
 
-const CURB = 1.2
 const BOARD_W = 7
 const BOARD_H = 6.5
 
@@ -38,19 +37,17 @@ function Leaderboard({ title, stat, frame, icon, x, z, rot }) {
   )
 }
 
-// Shallow pool on the west side with the three leaderboards standing in it.
+// Raised blue stand on the west side with the three leaderboards on it.
 export default function Pool() {
-  const { x0, x1, z0, z1 } = POOL
+  const { x0, x1, z0, z1, h } = POOL
   return (
     <group>
-      <Block x={(x0 + x1) / 2} z={z0 - CURB / 2} w={x1 - x0 + 2 * CURB} h={0.5} d={CURB} mat={MAT.curb} />
-      <Block x={(x0 + x1) / 2} z={z1 + CURB / 2} w={x1 - x0 + 2 * CURB} h={0.5} d={CURB} mat={MAT.curb} />
-      <Block x={x0 - CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.5} d={z1 - z0} mat={MAT.curb} />
-      <Block x={x1 + CURB / 2} z={(z0 + z1) / 2} w={CURB} h={0.5} d={z1 - z0} mat={MAT.curb} />
-      <Flat x0={x0} x1={x1} z0={z0} z1={z1} h={0.22} mat={MAT.water} />
-      {LEADERBOARDS.map((b) => (
-        <Leaderboard key={b.title} {...b} />
-      ))}
+      <Block x={(x0 + x1) / 2} z={(z0 + z1) / 2} w={x1 - x0} h={h} d={z1 - z0} mat={MAT.leaderStand} />
+      <group position={[0, h, 0]}>
+        {LEADERBOARDS.map((b) => (
+          <Leaderboard key={b.title} {...b} />
+        ))}
+      </group>
     </group>
   )
 }

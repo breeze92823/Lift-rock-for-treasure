@@ -13,7 +13,11 @@ import { authState, getDisplayName, getEquippedAvatar, getStableUserId, onAvatar
 import { DEV_MODE } from '../data/bloxity.js'
 import { UPGRADES, moveSpeedFor } from '../data/upgrades.js'
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'ws://localhost:2567'
+// Two Legion channels (`dev` branch -> dev, `main` -> prod), each with its own hostname; Vite's MODE
+// picks one at build time. Empty = no server configured: the game stays single-player.
+const SERVER_URL_DEV = import.meta.env.VITE_SERVER_URL_DEV || 'ws://localhost:2567'
+const SERVER_URL_MAIN = import.meta.env.VITE_SERVER_URL_MAIN || ''
+const SERVER_URL = import.meta.env.MODE === 'production' ? SERVER_URL_MAIN : SERVER_URL_DEV
 const MOVE_HZ = 15
 const SAVE_DEBOUNCE_MS = 1000
 const RETRY_MS = 3000
@@ -179,6 +183,7 @@ async function connect() {
 
 export function startNet() {
   if (started) return
+  if (!SERVER_URL) return console.warn('[net] no server URL configured, playing offline')
   started = true
   useGameStore.subscribe(onStoreChange)
   setInterval(sendMove, 1000 / MOVE_HZ)

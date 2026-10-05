@@ -129,7 +129,8 @@ export const TREASURES = [
   { id: 'skull', name: 'Infinity Skull', rarity: 'Exclusive', count: '983/1000', note: '150% of your BEST Treasure!', x: 11, z: -66, pad: '#ff9d1c' },
 ]
 
-export const POOL = { x0: -51, x1: -35, z0: -60, z1: -32 }
+// Raised blue stand the three leaderboards stand on; the player walks up onto it.
+export const POOL = { x0: -51, x1: -35, z0: -60, z1: -32, h: 0.4 }
 // Shallow arc: side boards turn inward, the middle one stands slightly back.
 // `rot` is the board's yaw (π/2 faces east, toward the hub).
 // `stat` = the store key in useLeaderboardStore; Pool.jsx fills the rows from the server.
@@ -276,6 +277,7 @@ export const TRAINING_SPOTS = TRAINING_PADS.map((p) => ({
 export const BLOCKS = [
   ...WALLS,
   ...TRAINING_BLOCKS,
+  { x: (POOL.x0 + POOL.x1) / 2, z: (POOL.z0 + POOL.z1) / 2, w: POOL.x1 - POOL.x0, d: POOL.z1 - POOL.z0, h: POOL.h },
   ...LIFT_ZONES.map(({ gate: b }) => ({ x: LIFT.x, z: (b.zS + b.zN) / 2, w: b.w, d: b.zS - b.zN, h: LIFT.barrierH, gate: b.luck })),
   // counter run as three small boxes along its (rotated) axis; AABBs can't turn
   ...STALLS.flatMap((s) => [-1.2, 0, 1.2].map((lx) => ({

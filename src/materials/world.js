@@ -39,6 +39,7 @@ export const MAT = {
   trainPlatform: studded('#9aa6ea', { side: '#7a86d0' }),
   trainStep: studded('#8794dc', { side: '#6874bf' }),
   trainEntry: studded('#d6daf0', { side: '#b4b9dc' }),
+  leaderStand: studded('#2f86e8', { side: '#1f5fb8' }),
   water: new MeshStandardMaterial({ color: COLORS.water, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 }),
   glow: new MeshStandardMaterial({ color: COLORS.glow, emissive: COLORS.glow, emissiveIntensity: 1.6, transparent: true, opacity: 0.85, toneMapped: false }),
   wood: plastic(COLORS.wood),
