@@ -5,6 +5,7 @@ import { useGameStore, openWindow } from '../store/useGameStore.js'
 import { addZone, zones } from './interact.js'
 import { showActionResult } from './actionResult.js'
 import { rebirthMultiplier } from '../data/levels.js'
+import { playCash } from './sfx.js'
 import { shortMoney } from '../utils/shortMoney.js'
 
 // Collect loot into the backpack (E near an item) and sell the whole backpack
@@ -42,6 +43,7 @@ export function sellItems(indices) {
   const total = Math.floor(sold.reduce((sum, it) => sum + it.value, 0) * rebirthMultiplier(s.rebirths))
   const inventory = s.inventory.filter((_, i) => !idx.includes(i))
   useGameStore.setState({ cash: s.cash + total, inventory, backpack: inventory.length })
+  playCash()
   showActionResult(`Sold ${sold.length} item${sold.length > 1 ? 's' : ''} for ${money(total)}`, true)
 }
 

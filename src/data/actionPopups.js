@@ -52,3 +52,11 @@ export const LIFT_LOOP_FADE_OUT_S = 0.15
 export const THROW_ROCK_SOUND_URL = '/audio/throw_rock.mp3'
 export const THROW_ROCK_PEAK = 0.9
 export const THROW_ROCK_GAIN = 0.22 // 0..1, on top of the master volume
+
+// Cash register one-shot when the offline earnings are claimed; trimmed to CASH_MAX_SECONDS,
+// peak-normalized, then scaled by CASH_GAIN.
+export const CASH_SOUND_URL = '/audio/cash.mp3'
+export const CASH_PEAK = 0.9
+export const CASH_MAX_SECONDS = 1.5
+export const CASH_FADE_OUT_S = 0.15
+export const CASH_GAIN = 0.2 // 0..1, on top of the master volume (throw is 0.22, pop 0.135)

@@ -37,6 +37,11 @@ import {
   THROW_ROCK_SOUND_URL,
   THROW_ROCK_PEAK,
   THROW_ROCK_GAIN,
+  CASH_SOUND_URL,
+  CASH_GAIN,
+  CASH_PEAK,
+  CASH_MAX_SECONDS,
+  CASH_FADE_OUT_S,
 } from '../data/actionPopups.js'
 
 const cache = new Map() // name -> Promise<AudioBuffer>
@@ -183,6 +188,52 @@ export function playStrengthPop() {
     source.buffer = buffer
     const gain = ctx.createGain()
     gain.gain.value = STRENGTH_POP_GAIN
+    source.connect(gain)
+    gain.connect(getMasterBus())
+    source.start(0)
+  })
+}
+
+// Cash register one-shot (offline earnings claim): decoded once, trailing silence
+// trimmed to CASH_MAX_SECONDS, peak-normalized and faded out; a missing file stays silent.
+let cashBufferPromise = null
+function loadCashBuffer(ctx) {
+  if (!cashBufferPromise) {
+    cashBufferPromise = fetch(CASH_SOUND_URL)
+      .then((r) => r.arrayBuffer())
+      .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(CASH_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? CASH_PEAK / peak : 1
+        const fade = Math.min(Math.floor(CASH_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
+      .catch(() => null)
+  }
+  return cashBufferPromise
+}
+
+export function playCash() {
+  const ctx = unlock()
+  if (!ctx) return
+  loadCashBuffer(ctx).then((buffer) => {
+    if (!buffer) return
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.value = CASH_GAIN
     source.connect(gain)
     gain.connect(getMasterBus())
     source.start(0)

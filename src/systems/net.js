@@ -10,6 +10,7 @@ import { useRemoteStore } from '../store/useRemoteStore.js'
 import { remotes } from './remotePlayers.js'
 import { player } from './playerState.js'
 import { authState, getDisplayName, getEquippedAvatar, getStableUserId, onAvatarChanged, subscribeAuth } from './bloxity.js'
+import { playCash } from './sfx.js'
 import { DEV_MODE } from '../data/bloxity.js'
 import { UPGRADES, moveSpeedFor } from '../data/upgrades.js'
 import { TUTORIAL_DONE } from '../data/tutorial.js'
@@ -203,6 +204,7 @@ async function connect() {
     r.onMessage('offlineEarnings', (offer) => useGameStore.setState({ offlineEarnings: offer, offlineClaiming: false }))
     r.onMessage('offlineClaimed', ({ cash = 0, strength = 0 }) => {
       const st = useGameStore.getState()
+      playCash()
       useGameStore.setState({ cash: st.cash + cash, strength: st.strength + strength, offlineEarnings: null, offlineClaiming: false })
     })
     r.onMessage('serverError', () => {
