@@ -27,6 +27,9 @@ import {
 import {
   STRENGTH_POP_SOUND_URL,
   STRENGTH_POP_GAIN,
+  STRENGTH_POP_PEAK,
+  STRENGTH_POP_MAX_SECONDS,
+  STRENGTH_POP_FADE_OUT_S,
   LIFT_LOOP_SOUND_URL,
   LIFT_LOOP_SECONDS,
   LIFT_LOOP_CROSSFADE_S,
@@ -37,6 +40,16 @@ import {
   THROW_ROCK_SOUND_URL,
   THROW_ROCK_PEAK,
   THROW_ROCK_GAIN,
+  CASH_SOUND_URL,
+  CASH_GAIN,
+  CASH_PEAK,
+  CASH_MAX_SECONDS,
+  CASH_FADE_OUT_S,
+  LEVEL_UP_SOUND_URL,
+  LEVEL_UP_GAIN,
+  LEVEL_UP_PEAK,
+  LEVEL_UP_MAX_SECONDS,
+  LEVEL_UP_FADE_OUT_S,
 } from '../data/actionPopups.js'
 
 const cache = new Map() // name -> Promise<AudioBuffer>
@@ -161,13 +174,32 @@ export function installButtonSounds() {
 // A blocked action; showActionResult(.., false) plays it with the red popup.
 export const playActionFail = () => play(failBuffer, ACTION_FAIL_GAIN)
 
-// Decoded-once cache for the pop file; a missing/undecodable file stays silent.
+// Decoded-once cache for the pop file: trailing silence trimmed to STRENGTH_POP_MAX_SECONDS,
+// peak-normalized and faded out; a missing/undecodable file stays silent.
 let popBufferPromise = null
 function loadPopBuffer(ctx) {
   if (!popBufferPromise) {
     popBufferPromise = fetch(STRENGTH_POP_SOUND_URL)
       .then((r) => r.arrayBuffer())
       .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(STRENGTH_POP_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? STRENGTH_POP_PEAK / peak : 1
+        const fade = Math.min(Math.floor(STRENGTH_POP_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
       .catch(() => null)
   }
   return popBufferPromise
@@ -183,6 +215,97 @@ export function playStrengthPop() {
     source.buffer = buffer
     const gain = ctx.createGain()
     gain.gain.value = STRENGTH_POP_GAIN
+    source.connect(gain)
+    gain.connect(getMasterBus())
+    source.start(0)
+  })
+}
+
+// Cash register one-shot (offline earnings claim): decoded once, trailing silence
+// trimmed to CASH_MAX_SECONDS, peak-normalized and faded out; a missing file stays silent.
+let cashBufferPromise = null
+function loadCashBuffer(ctx) {
+  if (!cashBufferPromise) {
+    cashBufferPromise = fetch(CASH_SOUND_URL)
+      .then((r) => r.arrayBuffer())
+      .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(CASH_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? CASH_PEAK / peak : 1
+        const fade = Math.min(Math.floor(CASH_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
+      .catch(() => null)
+  }
+  return cashBufferPromise
+}
+
+export function playCash() {
+  const ctx = unlock()
+  if (!ctx) return
+  loadCashBuffer(ctx).then((buffer) => {
+    if (!buffer) return
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.value = CASH_GAIN
+    source.connect(gain)
+    gain.connect(getMasterBus())
+    source.start(0)
+  })
+}
+
+// Level-up jingle: same trim / peak-normalize / fade treatment as the cash one-shot.
+let levelUpBufferPromise = null
+function loadLevelUpBuffer(ctx) {
+  if (!levelUpBufferPromise) {
+    levelUpBufferPromise = fetch(LEVEL_UP_SOUND_URL)
+      .then((r) => r.arrayBuffer())
+      .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(LEVEL_UP_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? LEVEL_UP_PEAK / peak : 1
+        const fade = Math.min(Math.floor(LEVEL_UP_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
+      .catch(() => null)
+  }
+  return levelUpBufferPromise
+}
+
+export function playLevelUp() {
+  const ctx = unlock()
+  if (!ctx) return
+  loadLevelUpBuffer(ctx).then((buffer) => {
+    if (!buffer) return
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.value = LEVEL_UP_GAIN
     source.connect(gain)
     gain.connect(getMasterBus())
     source.start(0)

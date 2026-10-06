@@ -1,6 +1,7 @@
 // Buying / equipping arm skins from the Arms window.
 import { useGameStore } from '../store/useGameStore.js'
 import { ARMS, armById } from '../data/arms.js'
+import { playCash } from './sfx.js'
 import { TUTORIAL_ARM, TUTORIAL_ARM_STEP } from '../data/tutorial.js'
 
 export const armMultiplier = () => {
@@ -26,6 +27,7 @@ export function armAction(id) {
   }
   const price = armPrice(a, st)
   if (price == null || st.cash < price) return false
+  if (price > 0) playCash()
   useGameStore.setState({ cash: st.cash - price, ownedArms: [...st.ownedArms, id], equippedArm: id })
   return true
 }

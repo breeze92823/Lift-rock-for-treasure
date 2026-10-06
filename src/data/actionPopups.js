@@ -35,8 +35,12 @@ export const ACTION_POPUP_ICON_SIZE = 72
 export const ACTION_POPUP_FONT_SIZE = 40
 
 // Pop sound played with each popup (real file in public/audio).
-export const STRENGTH_POP_SOUND_URL = '/audio/power_gain.mp3'
-export const STRENGTH_POP_GAIN = 0.135 // 0..1, on top of the master volume
+// Trimmed to STRENGTH_POP_MAX_SECONDS, peak-normalized, then scaled by STRENGTH_POP_GAIN.
+export const STRENGTH_POP_SOUND_URL = '/audio/pop.mp3'
+export const STRENGTH_POP_PEAK = 0.9
+export const STRENGTH_POP_MAX_SECONDS = 0.5
+export const STRENGTH_POP_FADE_OUT_S = 0.06
+export const STRENGTH_POP_GAIN = 0.135 // 0..1, on top of the master volume (fires often, so quieter than cash 0.2 / throw 0.22)
 
 // Looping lift sound while heaving a gate: only the first LIFT_LOOP_SECONDS of the file
 // are used, looped seamlessly, and peak-normalized so LIFT_LOOP_GAIN is its true level.
@@ -52,3 +56,19 @@ export const LIFT_LOOP_FADE_OUT_S = 0.15
 export const THROW_ROCK_SOUND_URL = '/audio/throw_rock.mp3'
 export const THROW_ROCK_PEAK = 0.9
 export const THROW_ROCK_GAIN = 0.22 // 0..1, on top of the master volume
+
+// Cash register one-shot when the offline earnings are claimed; trimmed to CASH_MAX_SECONDS,
+// peak-normalized, then scaled by CASH_GAIN.
+export const CASH_SOUND_URL = '/audio/cash.mp3'
+export const CASH_PEAK = 0.9
+export const CASH_MAX_SECONDS = 1.5
+export const CASH_FADE_OUT_S = 0.15
+export const CASH_GAIN = 0.2 // 0..1, on top of the master volume (throw is 0.22, pop 0.135)
+
+// Level-up jingle when the level rises; trimmed to LEVEL_UP_MAX_SECONDS, peak-normalized,
+// then scaled by LEVEL_UP_GAIN.
+export const LEVEL_UP_SOUND_URL = '/audio/level_up.mp3'
+export const LEVEL_UP_PEAK = 0.9
+export const LEVEL_UP_MAX_SECONDS = 2
+export const LEVEL_UP_FADE_OUT_S = 0.15
+export const LEVEL_UP_GAIN = 0.22 // 0..1, on top of the master volume (in line with cash 0.2 / throw 0.22)

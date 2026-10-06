@@ -6,6 +6,7 @@ import { BASE_UPGRADE, PLOT, PLOTS, PLOT_SLOT, UPPER_Y, plotSlotsAt } from '../d
 import { useGameStore } from '../store/useGameStore.js'
 import { addZone } from './interact.js'
 import { player } from './playerState.js'
+import { playCash } from './sfx.js'
 import { showActionResult } from './actionResult.js'
 
 // Each item can sit on the plot only once: true if another slot already holds it.
@@ -66,6 +67,7 @@ function upgradeBase() {
   else if (s.baseUpgraded) showActionResult('Your base is already upgraded', false)
   else if (s.cash < BASE_UPGRADE.cost) showActionResult(`Need ${BASE_UPGRADE.cost} Cash to upgrade`, false)
   else {
+    playCash()
     useGameStore.setState({ cash: s.cash - BASE_UPGRADE.cost, baseUpgraded: true })
     showActionResult(`Base upgraded! ${BASE_UPGRADE.upgradedSlots} slots`, true)
   }
