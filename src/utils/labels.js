@@ -161,9 +161,9 @@ export const RARITY_PILL = {
 }
 
 // Front face of a lift barrier (4:1 panel): "xN Luck" over a dark strip
-// carrying the lift progress bar (0/req) and the lifter's name.
-export function tierTexture(luck, req, name, color) {
-  return canvasTexture(`tier:${luck}:${req}:${name}:${color}`, 1024, 256, (ctx, w, h) => {
+// carrying the lift progress bar (0/req).
+export function tierTexture(luck, req, color) {
+  return canvasTexture(`tier:${luck}:${req}:${color}`, 1024, 256, (ctx, w, h) => {
     ctx.fillStyle = color
     ctx.fillRect(0, 0, w, h)
     ctx.font = font(76)
@@ -178,7 +178,6 @@ export function tierTexture(luck, req, name, color) {
     ctx.strokeStyle = '#3c4049'
     ctx.stroke()
     strokeText(ctx, `0/${req}`, w / 2, 151, { size: 46, line: 8 })
-    strokeText(ctx, name, w / 2, 218, { size: 34, fill: '#d9dce3', line: 0 })
   })
 }
 

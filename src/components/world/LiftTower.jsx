@@ -5,7 +5,6 @@ import { DRAIN, LIFT, LIFT_END, LIFT_ZONES } from '../../data/world.js'
 import { MAT, liftFloor, plastic } from '../../materials/world.js'
 import { liftStripeTexture, makeTimerBoard, tierTexture, zoneMarkerTexture } from '../../utils/labels.js'
 import { THROW_TIME, clearedGates, liftState } from '../../systems/liftGate.js'
-import { getDisplayName } from '../../systems/bloxity.js'
 import { useGameStore } from '../../store/useGameStore.js'
 import { finalLuck, luckBonus } from '../../data/loot.js'
 import { Block } from './parts.jsx'
@@ -128,10 +127,10 @@ function HealthBar({ b, z }) {
 
 // A luck barrier: dark plinth with its label on the south face, two rock
 // steps on top. Stands in the corridor until lifted.
-function Barrier({ b, name }) {
+function Barrier({ b }) {
   const bonus = useGameStore((s) => luckBonus(s.plotSlots))
   const shown = finalLuck(b.luck, bonus)
-  const map = useMemo(() => tierTexture(shown, b.req, name, b.plinth), [shown, b.req, name, b.plinth])
+  const map = useMemo(() => tierTexture(shown, b.req, b.plinth), [shown, b.req, b.plinth])
   const z = (b.zS + b.zN) / 2
   const w = b.w
   const len = b.zS - b.zN
@@ -232,7 +231,6 @@ export default function LiftTower() {
   const mouthStripe = useMemo(() => liftStripeTexture(2), []) // 4 m deep Lift Pad
   const bonus = useGameStore((s) => luckBonus(s.plotSlots))
   const markers = useMemo(() => LIFT_ZONES.map((zn) => zoneMarkerTexture(finalLuck(zn.luck, bonus))), [bonus])
-  const name = getDisplayName()
   const half = LIFT.width / 2
   const len = LIFT.zStart - LIFT_END
   const floorW = LIFT.width - 2 * DRAIN.width // walkable floor between the channels
@@ -242,7 +240,7 @@ export default function LiftTower() {
         <group key={zn.luck} name={`Zone x${zn.luck}`}>
           <Block name={`Loot Floor x${zn.luck}`} x={LIFT.x} y={-2} z={(zn.zFrom + zn.zTo) / 2} w={floorW} h={2.04} d={zn.zFrom - zn.zTo} mat={liftFloor(zn.floor)} shadow={false} />
           <ZoneEntry zn={zn} floorW={floorW} padMap={mouthStripe} gatewayMap={markers[i]} />
-          <Barrier b={zn.gate} name={name} />
+          <Barrier b={zn.gate} />
         </group>
       ))}
       {/* Drainage channels along both floor edges, glowing cyan at the bottom. */}
