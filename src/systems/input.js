@@ -107,8 +107,9 @@ function onKeyUp(e) {
 // Right-drag orbits the camera.
 function onPointerDown(e) {
   // Each primary click/tap (HUD buttons stop propagation, so they don't count)
-  // adds strength and spawns the "+N" Arm popup (disabled while lifting a gate).
-  if (e.button === 0 && !locked() && player.lifting == null) {
+  // adds strength and spawns the "+N" Arm popup (disabled while lifting a gate
+  // or training on a pad).
+  if (e.button === 0 && !locked() && player.lifting == null && !player.training) {
     gainStrength(STRENGTH_PER_CLICK)
   }
   if (e.pointerType === 'touch' || locked()) return

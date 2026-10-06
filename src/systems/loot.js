@@ -59,6 +59,7 @@ function buyTreasure(t) {
     return
   }
   const { rarity, value } = ITEM_INFO[t.item]
+  playCash()
   useGameStore.setState({
     cash: s.cash - t.cost,
     inventory: [...s.inventory, { name: t.item, rarity, value }],

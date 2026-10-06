@@ -27,6 +27,9 @@ import {
 import {
   STRENGTH_POP_SOUND_URL,
   STRENGTH_POP_GAIN,
+  STRENGTH_POP_PEAK,
+  STRENGTH_POP_MAX_SECONDS,
+  STRENGTH_POP_FADE_OUT_S,
   LIFT_LOOP_SOUND_URL,
   LIFT_LOOP_SECONDS,
   LIFT_LOOP_CROSSFADE_S,
@@ -166,13 +169,32 @@ export function installButtonSounds() {
 // A blocked action; showActionResult(.., false) plays it with the red popup.
 export const playActionFail = () => play(failBuffer, ACTION_FAIL_GAIN)
 
-// Decoded-once cache for the pop file; a missing/undecodable file stays silent.
+// Decoded-once cache for the pop file: trailing silence trimmed to STRENGTH_POP_MAX_SECONDS,
+// peak-normalized and faded out; a missing/undecodable file stays silent.
 let popBufferPromise = null
 function loadPopBuffer(ctx) {
   if (!popBufferPromise) {
     popBufferPromise = fetch(STRENGTH_POP_SOUND_URL)
       .then((r) => r.arrayBuffer())
       .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(STRENGTH_POP_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? STRENGTH_POP_PEAK / peak : 1
+        const fade = Math.min(Math.floor(STRENGTH_POP_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
       .catch(() => null)
   }
   return popBufferPromise
