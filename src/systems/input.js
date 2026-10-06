@@ -104,13 +104,21 @@ function onKeyUp(e) {
   recomputeMove()
 }
 
+// Click gain can only fire once per cooldown, so spam-clicking doesn't help.
+const CLICK_GAIN_COOLDOWN_MS = 1000
+let lastClickGain = -Infinity
+
 // Right-drag orbits the camera.
 function onPointerDown(e) {
   // Each primary click/tap (HUD buttons stop propagation, so they don't count)
   // adds strength and spawns the "+N" Arm popup (disabled while lifting a gate
   // or training on a pad).
   if (e.button === 0 && !locked() && player.lifting == null && !player.training) {
-    gainStrength(STRENGTH_PER_CLICK)
+    const now = performance.now()
+    if (now - lastClickGain >= CLICK_GAIN_COOLDOWN_MS) {
+      lastClickGain = now
+      gainStrength(STRENGTH_PER_CLICK)
+    }
   }
   if (e.pointerType === 'touch' || locked()) return
   if (e.button === 2) orbiting = true
