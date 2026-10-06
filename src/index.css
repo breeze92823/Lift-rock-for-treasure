@@ -27,23 +27,36 @@ canvas { display: block; touch-action: none; }
 }
 @keyframes loading-slide { from { margin-left: 0; } to { margin-left: 60%; } }
 
-/* Rock being lifted, with a gem glinting underneath. */
-.loading-rock { position: relative; width: 130px; height: 110px; margin-top: 26px; }
-.loading-rock .gem {
-  position: absolute; left: 50%; bottom: 0; width: 38px; height: 38px; margin-left: -19px;
-  background: linear-gradient(135deg, #bff6ff, #35c8ff 55%, #1c7fd1); border: 4px solid #1f1612;
-  transform: rotate(45deg); border-radius: 6px; box-shadow: 0 0 18px 4px rgba(80, 210, 255, 0.7);
+/* Treasure chest with the lid popping open on a pile of glowing gold. */
+.loading-chest { position: relative; width: 140px; height: 120px; margin-top: 26px; }
+.loading-chest .glow {
+  position: absolute; left: 50%; top: 30px; width: 110px; height: 60px; margin-left: -55px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 220, 90, 0.85), transparent 70%);
+  animation: loading-glow 1.6s ease-in-out infinite;
 }
-.loading-rock .glint {
-  position: absolute; left: 50%; bottom: 24px; width: 18px; height: 18px; margin-left: 8px; border-radius: 50%;
+.loading-chest .body {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 56px; border: 4px solid #1f1612; border-radius: 4px 4px 10px 10px;
+  background: repeating-linear-gradient(90deg, #a8662f 0 14px, #8a4f22 14px 16px);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.2), inset 0 8px 0 #d9a441;
+}
+.loading-chest .coins {
+  position: absolute; left: 10px; right: 10px; bottom: 48px; height: 22px; border: 4px solid #1f1612; border-radius: 50% 50% 0 0;
+  background: radial-gradient(circle at 30% 40%, #fff3a0, #ffc93c 55%, #d8941a);
+}
+.loading-chest .lid {
+  position: absolute; left: -2px; right: -2px; bottom: 52px; height: 36px; border: 4px solid #1f1612; border-radius: 40px 40px 4px 4px;
+  background: repeating-linear-gradient(90deg, #b87333 0 14px, #8a4f22 14px 16px);
+  transform-origin: 6px 100%; animation: loading-lid 1.6s ease-in-out infinite;
+}
+.loading-chest .lock {
+  position: absolute; left: 50%; bottom: 24px; width: 16px; height: 20px; margin-left: -8px; border: 3px solid #1f1612; border-radius: 3px;
+  background: #ffd35c;
+}
+.loading-chest .glint {
+  position: absolute; left: 50%; top: 22px; width: 20px; height: 20px; margin-left: 14px; border-radius: 50%;
   background: radial-gradient(circle, #fff 0 25%, #ffd35c 45%, transparent 72%);
   animation: loading-flicker 0.18s steps(2) infinite;
 }
-.loading-rock .stone {
-  position: absolute; left: 0; right: 0; top: 0; height: 80px; border: 4px solid #1f1612;
-  border-radius: 48% 52% 40% 40% / 60% 60% 40% 40%;
-  background: radial-gradient(circle at 35% 30%, #b6a79a, #8a7b6e 55%, #5e5249);
-  animation: loading-lift 1.6s ease-in-out infinite;
-}
 @keyframes loading-flicker { 0% { transform: scale(1) rotate(0); } 100% { transform: scale(1.35) rotate(45deg); } }
-@keyframes loading-lift { 0%, 100% { transform: translateY(18px) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
+@keyframes loading-lid { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(-38deg); } }
+@keyframes loading-glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
