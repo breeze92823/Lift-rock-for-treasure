@@ -18,6 +18,7 @@ import OfflineWindow from './OfflineWindow.jsx'
 import { levelForRebirth } from '../../data/levels.js'
 import Hotbar from './Hotbar.jsx'
 import TutorialBanner from './Tutorial.jsx'
+import LevelUpPopup from './LevelUpPopup.jsx'
 import { arrowAt } from '../../data/tutorial.js'
 import { ArmIcon, BackpackIcon, BookIcon, CashIcon, RebirthIcon, UpgradeIcon } from './icons.jsx'
 
@@ -103,6 +104,7 @@ export default function HUD() {
       <ActionResult />
       <ActionPopups />
       <TutorialBanner />
+      <LevelUpPopup />
       <SellWindow />
       <RebirthWindow />
       <IndexWindow />

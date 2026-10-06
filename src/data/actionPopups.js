@@ -64,3 +64,11 @@ export const CASH_PEAK = 0.9
 export const CASH_MAX_SECONDS = 1.5
 export const CASH_FADE_OUT_S = 0.15
 export const CASH_GAIN = 0.2 // 0..1, on top of the master volume (throw is 0.22, pop 0.135)
+
+// Level-up jingle when the level rises; trimmed to LEVEL_UP_MAX_SECONDS, peak-normalized,
+// then scaled by LEVEL_UP_GAIN.
+export const LEVEL_UP_SOUND_URL = '/audio/level_up.mp3'
+export const LEVEL_UP_PEAK = 0.9
+export const LEVEL_UP_MAX_SECONDS = 2
+export const LEVEL_UP_FADE_OUT_S = 0.15
+export const LEVEL_UP_GAIN = 0.22 // 0..1, on top of the master volume (in line with cash 0.2 / throw 0.22)

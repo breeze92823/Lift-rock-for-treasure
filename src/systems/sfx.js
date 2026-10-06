@@ -45,6 +45,11 @@ import {
   CASH_PEAK,
   CASH_MAX_SECONDS,
   CASH_FADE_OUT_S,
+  LEVEL_UP_SOUND_URL,
+  LEVEL_UP_GAIN,
+  LEVEL_UP_PEAK,
+  LEVEL_UP_MAX_SECONDS,
+  LEVEL_UP_FADE_OUT_S,
 } from '../data/actionPopups.js'
 
 const cache = new Map() // name -> Promise<AudioBuffer>
@@ -256,6 +261,51 @@ export function playCash() {
     source.buffer = buffer
     const gain = ctx.createGain()
     gain.gain.value = CASH_GAIN
+    source.connect(gain)
+    gain.connect(getMasterBus())
+    source.start(0)
+  })
+}
+
+// Level-up jingle: same trim / peak-normalize / fade treatment as the cash one-shot.
+let levelUpBufferPromise = null
+function loadLevelUpBuffer(ctx) {
+  if (!levelUpBufferPromise) {
+    levelUpBufferPromise = fetch(LEVEL_UP_SOUND_URL)
+      .then((r) => r.arrayBuffer())
+      .then((data) => ctx.decodeAudioData(data))
+      .then((src) => {
+        const rate = src.sampleRate
+        const chans = Array.from({ length: src.numberOfChannels }, (_, c) => src.getChannelData(c))
+        let len = Math.min(src.length, Math.floor(LEVEL_UP_MAX_SECONDS * rate))
+        while (len > 0 && chans.every((d) => Math.abs(d[len - 1]) < 0.005)) len--
+        len = Math.max(len, 1)
+        let peak = 0
+        for (const d of chans) for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]))
+        const k = peak > 0 ? LEVEL_UP_PEAK / peak : 1
+        const fade = Math.min(Math.floor(LEVEL_UP_FADE_OUT_S * rate), len)
+        const out = ctx.createBuffer(src.numberOfChannels, len, rate)
+        chans.forEach((d, c) => {
+          const b = out.getChannelData(c)
+          for (let i = 0; i < len; i++) b[i] = d[i] * k
+          for (let i = 0; i < fade; i++) b[len - 1 - i] *= i / fade
+        })
+        return out
+      })
+      .catch(() => null)
+  }
+  return levelUpBufferPromise
+}
+
+export function playLevelUp() {
+  const ctx = unlock()
+  if (!ctx) return
+  loadLevelUpBuffer(ctx).then((buffer) => {
+    if (!buffer) return
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.value = LEVEL_UP_GAIN
     source.connect(gain)
     gain.connect(getMasterBus())
     source.start(0)
