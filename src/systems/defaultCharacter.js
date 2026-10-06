@@ -102,7 +102,11 @@ function dress(bones) {
   }))
 
   bones.spine1.add(part(geo.torso, m.suit, 0, TORSO_Y, 0))
-  for (const arm of bones.arms) arm.add(part(geo.arm, m.suit, 0, ARM_Y, ARM_Z))
+  for (const arm of bones.arms) {
+    const mesh = part(geo.arm, m.suit, 0, ARM_Y, ARM_Z)
+    mesh.name = arm.name === 'ArmL1' ? 'default_arm_L' : 'default_arm_R' // armSkin.js re-skins these
+    arm.add(mesh)
+  }
   for (const leg of bones.legs) leg.add(part(geo.leg, m.suit, 0, LEG_Y, 0))
 
   bones.neck1.add(part(geo.head, m.skin, 0, HEAD_Y, 0))

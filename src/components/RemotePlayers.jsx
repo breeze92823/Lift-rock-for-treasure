@@ -6,6 +6,7 @@ import { remotes } from '../systems/remotePlayers.js'
 import { buildDefaultCharacter, loadBaseCharacter } from '../systems/defaultCharacter.js'
 import { attachEquippedAccessories } from '../systems/avatarLoader.js'
 import { makeGait, updateGait, disposeGait, setHolding } from '../systems/avatarAnim.js'
+import { applyArmSkin } from '../systems/armSkin.js'
 import { TRAINING_SPOTS } from '../data/world.js'
 import { Label } from './world/parts.jsx'
 
@@ -72,6 +73,7 @@ function RemotePlayer({ id }) {
     _q.setFromAxisAngle(_up, p.yaw)
     g.quaternion.slerp(_q, 1 - Math.pow(TURN_RATE, dt))
 
+    applyArmSkin(avatar, p.equippedArm || null)
     const gait = gaitRef.current
     if (gait) {
       setHolding(gait, p.holding ? 'both' : false)

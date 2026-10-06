@@ -9,7 +9,7 @@ export const ARMS = [
   { id: 'gold', name: 'Gold', rarity: 'Rare', mult: 50, price: 300000, pattern: 'ore', palette: ['#ffd84a', '#fff09a', '#d09a10', '#e8b420'] },
   { id: 'glowstone', name: 'Glowstone', rarity: 'Epic', mult: 100, price: 1000000, pattern: 'noise', palette: ['#ffcf6a', '#ffe8a0', '#e8a040', '#c88a2a'] },
   { id: 'obsidian', name: 'Obsidian', rarity: 'Epic', mult: 200, price: 5000000, pattern: 'noise', palette: ['#2a1646', '#3a2658', '#1a0f2e', '#4a3070'] },
-  { id: 'glass', name: 'Glass', rarity: 'Exclusive', mult: 350, price: null, pattern: 'glass', palette: ['#d8f2ff', '#ffffff', '#a8d8f0', '#7ab8d8'] },
+  { id: 'glass', name: 'Glass', rarity: 'Exclusive', mult: 350, price: 50000000, pattern: 'glass', palette: ['#d8f2ff', '#ffffff', '#a8d8f0', '#7ab8d8'] },
   { id: 'diamond', name: 'Diamond', rarity: 'Legendary', mult: 500, price: 100000000, pattern: 'ore', palette: ['#5af0e0', '#a0fff4', '#9a9ea8', '#b8bcc4'] },
   { id: 'lava', name: 'Lava', rarity: 'Legendary', mult: 1000, price: 300000000, pattern: 'noise', palette: ['#ff7a1a', '#ffb02a', '#c02a08', '#ff4a10'] },
   { id: 'emerald', name: 'Emerald', rarity: 'Mythic', mult: 2500, price: 1000000000, pattern: 'ore', palette: ['#3aea6a', '#8affa8', '#9a9ea8', '#b8bcc4'] },
