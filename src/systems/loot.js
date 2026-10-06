@@ -42,7 +42,9 @@ export function sellItems(indices) {
   }
   const total = Math.floor(sold.reduce((sum, it) => sum + it.value, 0) * rebirthMultiplier(s.rebirths))
   const inventory = s.inventory.filter((_, i) => !idx.includes(i))
-  useGameStore.setState({ cash: s.cash + total, inventory, backpack: inventory.length })
+  // Selling the last copy of the equipped item unequips it, so a sold item can't be placed on the plot.
+  const heldSold = s.heldItem && sold.some((it) => it.name === s.heldItem.name) && !inventory.some((it) => it.name === s.heldItem.name)
+  useGameStore.setState({ cash: s.cash + total, inventory, backpack: inventory.length, ...(heldSold && { heldItem: null }) })
   playCash()
   showActionResult(`Sold ${sold.length} item${sold.length > 1 ? 's' : ''} for ${money(total)}`, true)
 }
