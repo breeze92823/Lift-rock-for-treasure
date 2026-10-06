@@ -7,6 +7,7 @@ import { DEV_MODE } from '../data/bloxity.js'
 import { applyProportions, attachEquippedAccessories } from '../systems/avatarLoader.js'
 import { buildDefaultCharacter, loadBaseCharacter } from '../systems/defaultCharacter.js'
 import { useGameStore } from '../store/useGameStore.js'
+import { applyArmSkin } from '../systems/armSkin.js'
 import HeldItem from './HeldItem.jsx'
 import { makeGait, updateGait, disposeGait, setHolding } from '../systems/avatarAnim.js'
 
@@ -97,6 +98,7 @@ export default function Player() {
     _targetQuat.setFromAxisAngle(_up, player.facing)
     g.quaternion.slerp(_targetQuat, 1 - Math.pow(TURN_RATE, delta))
 
+    applyArmSkin(avatar, useGameStore.getState().equippedArm)
     const gait = gaitRef.current
     if (gait) {
       setHolding(gait, useGameStore.getState().heldItem ? 'both' : false)
